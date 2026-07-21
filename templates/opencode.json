@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "default_agent": "aiox-master",
+
+  "agent": {
+    "aiox-master": {
+      "description": "Orion - AIOX Master Orchestrator. Orchestrates multi-agent workflows. Use @agent-name to invoke specialized agents.",
+      "mode": "primary",
+      "color": "#9C27B0",
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git log*": "allow",
+          "node *": "allow",
+          "npm run*": "allow"
+        },
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "skill": "allow",
+        "task": { "*": "allow" },
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    }
+  },
+
+  "mcp": {},
+
+  "permission": {
+    "bash": { "*": "allow" },
+    "edit": "allow",
+    "read": "allow",
+    "write": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "webfetch": "allow",
+    "websearch": "allow"
+  }
+}
