@@ -7,7 +7,11 @@
     "aiox-global": "bin/aiox-global.js"
   },
   "scripts": {
-    "postinstall": "echo '[AIOX] Run \"aiox-global init\" to install agents'"
+    "postinstall": "echo '[AIOX] Run \"aiox-global init\" to install agents'",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "validate": "node scripts/validate-agents.js"
   },
   "keywords": [
     "aiox",
@@ -25,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AIOX-Squads/aiox-opencode-adapter"
+    "url": "https://github.com/exdrama23/aiox-opencode-adapter"
   },
   "homepage": "https://github.com/SynkraAI/aiox-core",
   "bugs": {
@@ -43,5 +47,8 @@
     "README.md",
     "README.en.md",
     "CONTRIBUTING.md"
-  ]
+  ],
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
 }

@@ -1,0 +1,60 @@
+name: Test & Validate
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Validate agents
+        run: npm run validate
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check package.json
+        run: node -e "const pkg = require('./package.json'); console.log('Package:', pkg.name, 'v' + pkg.version);"
+
+      - name: Verify agent count
+        run: |
+          AGENT_COUNT=$(ls agents/*.md | wc -l)
+          echo "Agent count: $AGENT_COUNT"
+          if [ "$AGENT_COUNT" -ne 12 ]; then
+            echo "Error: Expected 12 agents, found $AGENT_COUNT"
+            exit 1
+          fi
