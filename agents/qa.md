@@ -2,6 +2,7 @@
 description: "Quinn - Test Architect. Code review, quality gates, test architecture, QA feedback."
 mode: subagent
 color: "#E91E63"
+version: "1.0.0"
 permission:
   edit: deny
   bash:

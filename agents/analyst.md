@@ -2,6 +2,7 @@
 description: "Atlas - Business Analyst. Market research, competitive analysis, brainstorming, requirements gathering."
 mode: subagent
 color: "#607D8B"
+version: "1.0.0"
 permission:
   edit: deny
   bash: deny

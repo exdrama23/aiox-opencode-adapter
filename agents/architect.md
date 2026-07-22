@@ -2,6 +2,7 @@
 description: "Aria - System Architect. Architecture design, tech stack selection, API design, system diagrams."
 mode: subagent
 color: "#2196F3"
+version: "1.0.0"
 permission:
   edit: deny
   bash:

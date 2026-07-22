@@ -2,6 +2,7 @@
 description: "Morgan - Product Manager. PRD creation, epic management, product strategy, market analysis."
 mode: subagent
 color: "#FF9800"
+version: "1.0.0"
 permission:
   edit: allow
   bash: deny

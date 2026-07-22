@@ -2,6 +2,7 @@
 description: "Dara - Database Architect. Schema design, migrations, RLS policies, query optimization."
 mode: subagent
 color: "#3F51B5"
+version: "1.0.0"
 permission:
   edit: allow
   bash:

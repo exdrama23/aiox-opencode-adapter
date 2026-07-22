@@ -2,6 +2,7 @@
 description: "River - Scrum Master. Story creation, sprint planning, backlog management, workflow orchestration."
 mode: subagent
 color: "#00BCD4"
+version: "1.0.0"
 permission:
   edit: allow
   bash:

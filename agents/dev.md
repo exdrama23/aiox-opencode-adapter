@@ -2,6 +2,7 @@
 description: "Dex - Full Stack Developer. Code implementation, debugging, refactoring, running tests."
 mode: subagent
 color: "#4CAF50"
+version: "1.0.0"
 permission:
   edit: allow
   bash:

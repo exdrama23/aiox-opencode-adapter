@@ -137,17 +137,21 @@ function cmdConfig() {
   }
 
   // Auto-detect Pentest MCP (Docker)
-  const dockerCheck = exec('docker ps -a --filter name=pentest-mcp --format "{{.Names}}"');
-  if (dockerCheck && dockerCheck.includes('pentest-mcp')) {
-    config.mcp['pentest-mcp'] = {
-      type: 'local',
-      command: ['docker', 'exec', '-i', 'pentest-mcp', 'python3', '/app/server.py'],
-      enabled: true,
-      timeout: 300000
-    };
-    ok('Pentest MCP configured (Docker container found)');
-  } else {
-    warn('Pentest MCP not found. Run "aiox-global setup-pentest" to install.');
+  try {
+    const dockerCheck = exec('docker ps -a --filter name=pentest-mcp --format "{{.Names}}"');
+    if (dockerCheck && dockerCheck.includes('pentest-mcp')) {
+      config.mcp['pentest-mcp'] = {
+        type: 'local',
+        command: ['docker', 'exec', '-i', 'pentest-mcp', 'python3', '/app/server.py'],
+        enabled: true,
+        timeout: 300000
+      };
+      ok('Pentest MCP configured (Docker container found)');
+    } else {
+      warn('Pentest MCP not found. Run "aiox-global setup-pentest" to install.');
+    }
+  } catch {
+    warn('Docker not available. Pentest MCP requires Docker.');
   }
 
   // Ensure config directory exists
@@ -371,6 +375,197 @@ function cmdDoctor() {
   console.log(`\nTotal agents in ~/.config/opencode/agents/: ${files.length}`);
 }
 
+// ─── update ─────────────────────────────────────────────
+function cmdUpdate() {
+  log('Checking for updates...\n');
+
+  // Get current version
+  const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
+  const currentVersion = pkg.version;
+  info(`Current version: ${currentVersion}`);
+
+  // Check latest version on npm
+  log('Checking npm registry...');
+  const latestVersion = exec('npm view aiox-opencode-adapter version');
+  if (!latestVersion) {
+    fail('Could not check for updates. Check your internet connection.');
+    return;
+  }
+  info(`Latest version: ${latestVersion}`);
+
+  if (currentVersion === latestVersion) {
+    ok('You are already on the latest version!');
+    return;
+  }
+
+  log(`\nUpdate available: ${currentVersion} → ${latestVersion}`);
+
+  // Backup custom agents
+  const customDir = path.join(OPENCODE_DIR, 'custom');
+  if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
+    const customAgents = fs.readdirSync(OPENCODE_AGENTS_DIR)
+      .filter(f => f.endsWith('.md') && !AGENTS.includes(f));
+
+    if (customAgents.length > 0) {
+      if (!fs.existsSync(customDir)) {
+        fs.mkdirSync(customDir, { recursive: true });
+      }
+      customAgents.forEach(agent => {
+        const src = path.join(OPENCODE_AGENTS_DIR, agent);
+        const dest = path.join(customDir, agent);
+        fs.copyFileSync(src, dest);
+      });
+      info(`Backed up ${customAgents.length} custom agents to ${customDir}`);
+    }
+  }
+
+  // Update npm package
+  log('\nUpdating npm package...');
+  const updateResult = exec('npm install -g aiox-opencode-adapter@latest');
+  if (!updateResult) {
+    fail('Failed to update npm package. Try running: npm install -g aiox-opencode-adapter');
+    return;
+  }
+  ok('npm package updated');
+
+  // Reinstall agents
+  log('\nReinstalling agents...');
+  cmdInit();
+
+  // Restore custom agents
+  if (fs.existsSync(customDir)) {
+    const customAgents = fs.readdirSync(customDir).filter(f => f.endsWith('.md'));
+    if (customAgents.length > 0) {
+      customAgents.forEach(agent => {
+        const src = path.join(customDir, agent);
+        const dest = path.join(OPENCODE_AGENTS_DIR, agent);
+        fs.copyFileSync(src, dest);
+        ok(`Restored custom agent: ${agent}`);
+      });
+    }
+  }
+
+  log('\nUpdate complete!');
+  log('Run "aiox-global doctor" to verify installation.');
+}
+
+// ─── customize ─────────────────────────────────────────
+function cmdCustomize(agentName) {
+  if (!agentName) {
+    log('Usage: aiox-global customize <agent-name>\n');
+    log('Available agents:');
+    AGENTS.forEach(f => {
+      const name = f.replace('.md', '');
+      console.log(`  ${name}`);
+    });
+    log('\nExample: aiox-global customize dev');
+    return;
+  }
+
+  const agentFile = agentName.endsWith('.md') ? agentName : `${agentName}.md`;
+  const agentPath = path.join(AGENTS_DIR, agentFile);
+
+  if (!fs.existsSync(agentPath)) {
+    fail(`Agent not found: ${agentName}`);
+    log('Available agents:');
+    AGENTS.forEach(f => {
+      const name = f.replace('.md', '');
+      console.log(`  ${name}`);
+    });
+    return;
+  }
+
+  // Ensure custom directory exists
+  const customDir = path.join(OPENCODE_DIR, 'custom');
+  if (!fs.existsSync(customDir)) {
+    fs.mkdirSync(customDir, { recursive: true });
+  }
+
+  // Copy agent to custom directory
+  const customPath = path.join(customDir, agentFile);
+  fs.copyFileSync(agentPath, customPath);
+
+  log(`Agent "${agentName}" ready for customization.`);
+  log(`\nCustom file: ${customPath}`);
+  log('\nYou can now edit this file to customize the agent.');
+  log('Custom agents are preserved during updates.');
+}
+
+// ─── preset ────────────────────────────────────────────
+const PRESETS = {
+  dev: {
+    name: 'Developer',
+    description: 'Essential agents for software development',
+    agents: ['dev.md', 'architect.md', 'qa.md', 'devops.md'],
+  },
+  pentest: {
+    name: 'Pentester',
+    description: 'Security testing and penetration testing',
+    agents: ['cybersec.md', 'dev.md', 'devops.md'],
+  },
+  fullstack: {
+    name: 'Full Stack',
+    description: 'Complete development team',
+    agents: ['dev.md', 'architect.md', 'sm.md', 'pm.md', 'po.md', 'qa.md', 'devops.md', 'data-engineer.md'],
+  },
+  agile: {
+    name: 'Agile Team',
+    description: 'Agile project management focus',
+    agents: ['sm.md', 'pm.md', 'po.md', 'analyst.md', 'dev.md', 'qa.md'],
+  },
+  minimal: {
+    name: 'Minimal',
+    description: 'Just the essentials',
+    agents: ['dev.md', 'qa.md'],
+  },
+};
+
+function cmdPreset(presetName) {
+  if (!presetName) {
+    log('Available presets:\n');
+    Object.entries(PRESETS).forEach(([key, preset]) => {
+      console.log(`  ${key.padEnd(12)} ${preset.name} - ${preset.description}`);
+      console.log(`               Agents: ${preset.agents.map(a => a.replace('.md', '')).join(', ')}`);
+    });
+    log('\nUsage: aiox-global preset <preset-name>');
+    log('Example: aiox-global preset dev');
+    return;
+  }
+
+  const preset = PRESETS[presetName];
+  if (!preset) {
+    fail(`Preset not found: ${presetName}`);
+    log('Available presets:');
+    Object.keys(PRESETS).forEach(key => console.log(`  ${key}`));
+    return;
+  }
+
+  log(`Applying preset: ${preset.name}\n`);
+
+  // Ensure agents directory exists
+  if (!fs.existsSync(OPENCODE_AGENTS_DIR)) {
+    fs.mkdirSync(OPENCODE_AGENTS_DIR, { recursive: true });
+  }
+
+  let copied = 0;
+  preset.agents.forEach(agentFile => {
+    const src = path.join(AGENTS_DIR, agentFile);
+    const dest = path.join(OPENCODE_AGENTS_DIR, agentFile);
+
+    if (!fs.existsSync(src)) {
+      fail(`${agentFile}: source not found`);
+      return;
+    }
+
+    fs.copyFileSync(src, dest);
+    ok(`${agentFile} -> ${dest}`);
+    copied++;
+  });
+
+  log(`\nInstalled ${copied}/${preset.agents.length} agents from "${preset.name}" preset.`);
+  log('Run "aiox-global config" to update OpenCode configuration.');
+}
+
 // ─── uninstall ───────────────────────────────────────────
 function cmdUninstall() {
   log('Removing AIOX agents...\n');
@@ -419,9 +614,21 @@ switch (cmd) {
   case 'ls':
     cmdList();
     break;
+  case 'update':
+  case 'upgrade':
+    cmdUpdate();
+    break;
   case 'doctor':
   case 'check':
     cmdDoctor();
+    break;
+  case 'customize':
+  case 'custom':
+    cmdCustomize(args[1]);
+    break;
+  case 'preset':
+  case 'template':
+    cmdPreset(args[1]);
     break;
   case 'uninstall':
   case 'remove':
@@ -443,6 +650,9 @@ Commands:
   aiox-global setup-hexstrike Install HexStrike AI pentesting MCP
   aiox-global setup-pentest   Install Pentest MCP (Docker)
   aiox-global list            List installed agents
+  aiox-global update          Update to latest version
+  aiox-global customize       Customize an agent (creates local copy)
+  aiox-global preset          Apply a preset (dev, pentest, fullstack, agile, minimal)
   aiox-global doctor          Check installation health
   aiox-global uninstall       Remove AIOX agents
   aiox-global help            Show this help

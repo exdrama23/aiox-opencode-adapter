@@ -112,6 +112,47 @@ describe('AIOX Global CLI', () => {
     });
   });
 
+  describe('customize command', () => {
+    test('should show usage when no agent specified', () => {
+      const output = run('customize');
+      expect(output).toContain('Usage:');
+      expect(output).toContain('customize');
+    });
+
+    test('should show available agents when no agent specified', () => {
+      const output = run('customize');
+      expect(output).toContain('dev');
+      expect(output).toContain('architect');
+    });
+
+    test('should copy agent to custom directory', () => {
+      const customDir = path.join(OPENCODE_DIR, 'custom');
+      if (!fs.existsSync(customDir)) {
+        fs.mkdirSync(customDir, { recursive: true });
+      }
+
+      const output = run('customize dev');
+      expect(output).toContain('ready for customization');
+      expect(output).toContain('Custom file:');
+    });
+  });
+
+  describe('preset command', () => {
+    test('should list available presets when no preset specified', () => {
+      const output = run('preset');
+      expect(output).toContain('Available presets:');
+      expect(output).toContain('dev');
+      expect(output).toContain('pentest');
+      expect(output).toContain('fullstack');
+    });
+
+    test('should apply preset and install agents', () => {
+      const output = run('preset minimal');
+      expect(output).toContain('Applying preset:');
+      expect(output).toMatch(/✓|Installed/);
+    });
+  });
+
   describe('unknown command', () => {
     test('should display error for unknown command', () => {
       const output = run('unknown-command');

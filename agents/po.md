@@ -2,6 +2,7 @@
 description: "Pax - Product Owner. Backlog management, story refinement, Definition of Done enforcement."
 mode: subagent
 color: "#FF5722"
+version: "1.0.0"
 permission:
   edit: allow
   bash: deny

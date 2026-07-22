@@ -2,6 +2,7 @@
 description: "Uma - UX/UI Designer. Design systems, wireframes, accessibility, design tokens, user experience."
 mode: subagent
 color: "#FF4081"
+version: "1.0.0"
 permission:
   edit: allow
   bash: deny

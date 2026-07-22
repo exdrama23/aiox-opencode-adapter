@@ -2,6 +2,7 @@
 description: "Gage - DevOps Specialist. Git push, PR creation, CI/CD, deployment. The ONLY agent that can push to remote."
 mode: subagent
 color: "#795548"
+version: "1.0.0"
 permission:
   edit: allow
   bash: allow
