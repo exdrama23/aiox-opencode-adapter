@@ -211,7 +211,7 @@ If you want to modify the source code:
 
 ```bash
 # Clone the repository
-git clone https://github.com/AIOX-Squads/aiox-opencode-adapter.git
+git clone https://github.com/exdrama23/aiox-opencode-adapter.git
 cd aiox-opencode-adapter
 
 # Install dependencies

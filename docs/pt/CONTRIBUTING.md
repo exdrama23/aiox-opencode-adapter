@@ -10,7 +10,7 @@ Recebemos contribuicoes para o projeto AIOX OpenCode Adapter.
 
 ### Reportando Bugs
 
-1. Verifique se o bug ja existe nas [Issues](https://github.com/AIOX-Squads/aiox-opencode-adapter/issues)
+1. Verifique se o bug ja existe nas [Issues](https://github.com/exdrama23/aiox-opencode-adapter/issues)
 2. Se nao existir, abra uma nova issue com:
    - Descricao clara do problema
    - Passos para reproduzir
