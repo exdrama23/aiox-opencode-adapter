@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const fs = require('fs');
 const path = require('path');
 
@@ -7,7 +5,6 @@ const AGENTS_DIR = path.join(__dirname, '..', 'agents');
 const REQUIRED_FIELDS = ['description', 'mode'];
 const VALID_MODES = ['primary', 'subagent'];
 
-// Parse YAML frontmatter (improved to handle nested objects)
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
@@ -18,13 +15,11 @@ function parseFrontmatter(content) {
   let currentObject = null;
 
   for (const line of lines) {
-    // Check if it's a nested property (starts with spaces)
     const nestedMatch = line.match(/^  (\w+):\s*(.*)/);
     if (nestedMatch && currentKey) {
       const nestedKey = nestedMatch[1];
       let nestedValue = nestedMatch[2].trim();
 
-      // Remove quotes
       if ((nestedValue.startsWith('"') && nestedValue.endsWith('"')) ||
           (nestedValue.startsWith("'") && nestedValue.endsWith("'"))) {
         nestedValue = nestedValue.slice(1, -1);
@@ -38,19 +33,16 @@ function parseFrontmatter(content) {
       continue;
     }
 
-    // Regular key-value pair
     const colonIndex = line.indexOf(':');
     if (colonIndex > 0) {
       const key = line.substring(0, colonIndex).trim();
       let value = line.substring(colonIndex + 1).trim();
 
-      // Remove quotes
       if ((value.startsWith('"') && value.endsWith('"')) ||
           (value.startsWith("'") && value.endsWith("'"))) {
         value = value.slice(1, -1);
       }
 
-      // If value is empty, it might be a nested object
       if (value === '') {
         currentKey = key;
         currentObject = null;
@@ -98,7 +90,6 @@ function validateAgents() {
       continue;
     }
 
-    // Check required fields
     for (const field of REQUIRED_FIELDS) {
       if (!frontmatter[field]) {
         console.error(`  Error: Missing required field: ${field}`);
@@ -106,26 +97,22 @@ function validateAgents() {
       }
     }
 
-    // Check mode
     if (frontmatter.mode && !VALID_MODES.includes(frontmatter.mode)) {
       console.error(`  Error: Invalid mode: ${frontmatter.mode}. Must be: ${VALID_MODES.join(', ')}`);
       errors++;
     }
 
-    // Check description length
     if (frontmatter.description && frontmatter.description.length < 10) {
       console.warn(`  Warning: Description is too short (${frontmatter.description.length} chars)`);
       warnings++;
     }
 
-    // Check body content
     const body = content.replace(/^---\n[\s\S]*?\n---/, '').trim();
     if (body.length < 50) {
       console.warn(`  Warning: Agent content is very short (${body.length} chars)`);
       warnings++;
     }
 
-    // Check for permissions
     if (!frontmatter.permission) {
       console.warn(`  Warning: No permission section defined`);
       warnings++;
@@ -149,7 +136,6 @@ function validateAgents() {
   }
 }
 
-// Run if called directly
 if (require.main === module) {
   validateAgents();
 }

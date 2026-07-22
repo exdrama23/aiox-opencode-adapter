@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -12,6 +10,9 @@ const OPENCODE_CONFIG = path.join(OPENCODE_DIR, 'opencode.json');
 const OPENCODE_SKILLS_DIR = path.join(OPENCODE_DIR, 'skills');
 const PACKAGE_JSON = path.join(__dirname, '..', 'package.json');
 const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
+
+const { checkForUpdate } = require('./update-checker');
+checkForUpdate();
 
 const AGENTS = [
   'dev.md',
@@ -42,7 +43,6 @@ function exec(cmd, opts = {}) {
   }
 }
 
-// ─── init ────────────────────────────────────────────────
 function cmdInit() {
   log('Installing AIOX agents globally for OpenCode...\n');
 
@@ -93,7 +93,6 @@ function cmdInit() {
   log('  Tab                    # Switch between primary agents');
 }
 
-// ─── config ──────────────────────────────────────────────
 function cmdConfig() {
   log('Generating OpenCode config...\n');
 
@@ -105,7 +104,6 @@ function cmdConfig() {
 
   let config = JSON.parse(fs.readFileSync(templatePath, 'utf8'));
 
-  // Auto-detect HexStrike
   const hexstrikePaths = [
     path.join(os.homedir(), 'hexstrike-ai', 'hexstrike_mcp.py'),
     'C:\\hexstrike-ai\\hexstrike_mcp.py',
@@ -136,7 +134,6 @@ function cmdConfig() {
     warn('HexStrike not found. Run "aiox-global setup-hexstrike" to install.');
   }
 
-  // Auto-detect Pentest MCP (Docker)
   try {
     const dockerCheck = exec('docker ps -a --filter name=pentest-mcp --format "{{.Names}}"');
     if (dockerCheck && dockerCheck.includes('pentest-mcp')) {
@@ -154,46 +151,39 @@ function cmdConfig() {
     warn('Docker not available. Pentest MCP requires Docker.');
   }
 
-  // Ensure config directory exists
   if (!fs.existsSync(OPENCODE_DIR)) {
     fs.mkdirSync(OPENCODE_DIR, { recursive: true });
   }
 
-  // Backup existing config
   if (fs.existsSync(OPENCODE_CONFIG)) {
     const backup = OPENCODE_CONFIG + '.bak';
     fs.copyFileSync(OPENCODE_CONFIG, backup);
     info(`Backed up existing config to ${backup}`);
   }
 
-  // Write config
   fs.writeFileSync(OPENCODE_CONFIG, JSON.stringify(config, null, 2));
   ok(`Config written to ${OPENCODE_CONFIG}`);
 
   log('\nConfig generated! MCPs will auto-connect on next OpenCode restart.');
 }
 
-// ─── setup-hexstrike ─────────────────────────────────────
 function cmdSetupHexstrike() {
   log('Setting up HexStrike AI...\n');
 
   const hexstrikeDir = path.join(os.homedir(), 'hexstrike-ai');
 
-  // Check if already installed
   if (fs.existsSync(path.join(hexstrikeDir, 'hexstrike_mcp.py'))) {
     ok('HexStrike already installed at ' + hexstrikeDir);
     log('To reinstall, delete the directory first: ' + hexstrikeDir);
     return;
   }
 
-  // Check for git
   const git = exec('git --version');
   if (!git) {
     fail('Git not found. Please install Git first.');
     return;
   }
 
-  // Clone
   log('Cloning HexStrike AI repository...');
   const cloneResult = exec('git clone https://github.com/AIOX-Squads/hexstrike-ai.git "' + hexstrikeDir + '"');
   if (!cloneResult && !fs.existsSync(path.join(hexstrikeDir, 'hexstrike_mcp.py'))) {
@@ -202,7 +192,6 @@ function cmdSetupHexstrike() {
   }
   ok('Repository cloned');
 
-  // Create virtual environment
   log('Creating Python virtual environment...');
   const isWin = os.platform() === 'win32';
   const pythonCmd = isWin ? 'python' : 'python3';
@@ -215,7 +204,6 @@ function cmdSetupHexstrike() {
   }
   ok('Virtual environment created');
 
-  // Install dependencies
   log('Installing dependencies...');
   const pip = isWin
     ? path.join(venvDir, 'Scripts', 'pip.exe')
@@ -227,11 +215,9 @@ function cmdSetupHexstrike() {
   log('Run "aiox-global config" to add it to OpenCode.');
 }
 
-// ─── setup-pentest ───────────────────────────────────────
 function cmdSetupPentest() {
   log('Setting up Pentest MCP (Docker)...\n');
 
-  // Check Docker
   const docker = exec('docker --version');
   if (!docker) {
     fail('Docker not found. Please install Docker first.');
@@ -239,7 +225,6 @@ function cmdSetupPentest() {
   }
   ok('Docker found: ' + docker);
 
-  // Check if already running
   const existing = exec('docker ps -a --filter name=pentest-mcp --format "{{.Names}}"');
   if (existing && existing.includes('pentest-mcp')) {
     const status = exec('docker inspect -f "{{.State.Status}}" pentest-mcp');
@@ -254,7 +239,6 @@ function cmdSetupPentest() {
     return;
   }
 
-  // Pull and run
   log('Pulling pentest-mcp image...');
   const pullResult = exec('docker pull pentest-mcp/pentest-mcp:latest');
   if (!pullResult) {
@@ -274,7 +258,6 @@ function cmdSetupPentest() {
   log('Run "aiox-global config" to add it to OpenCode.');
 }
 
-// ─── list ────────────────────────────────────────────────
 function cmdList() {
   log('Installed AIOX agents:\n');
 
@@ -303,17 +286,14 @@ function cmdList() {
   console.log(`\nTotal: ${files.length} agents`);
 }
 
-// ─── doctor ──────────────────────────────────────────────
 function cmdDoctor() {
   log('Checking AIOX global installation...\n');
 
-  // Check Node.js
   try {
     const nodeVer = process.version;
     ok(`Node.js ${nodeVer}`);
   } catch { fail('Node.js not found'); }
 
-  // Check opencode config dir
   if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
     ok(`Config directory: ${OPENCODE_AGENTS_DIR}`);
   } else {
@@ -322,7 +302,6 @@ function cmdDoctor() {
     return;
   }
 
-  // Check agents
   const files = fs.readdirSync(OPENCODE_AGENTS_DIR).filter(f => f.endsWith('.md'));
   const aioxAgents = files.filter(f => AGENTS.includes(f));
   const otherAgents = files.filter(f => !AGENTS.includes(f));
@@ -339,7 +318,6 @@ function cmdDoctor() {
     log(`  Other agents: ${otherAgents.map(f => f.replace('.md', '')).join(', ')}`);
   }
 
-  // Check opencode config
   if (fs.existsSync(OPENCODE_CONFIG)) {
     ok('OpenCode config found');
     try {
@@ -357,7 +335,6 @@ function cmdDoctor() {
     warn('No opencode.json found. Run "aiox-global config"');
   }
 
-  // Check MCPs
   const hexstrikeDir = path.join(os.homedir(), 'hexstrike-ai');
   if (fs.existsSync(path.join(hexstrikeDir, 'hexstrike_mcp.py'))) {
     ok('HexStrike AI installed');
@@ -375,16 +352,13 @@ function cmdDoctor() {
   console.log(`\nTotal agents in ~/.config/opencode/agents/: ${files.length}`);
 }
 
-// ─── update ─────────────────────────────────────────────
 function cmdUpdate() {
   log('Checking for updates...\n');
 
-  // Get current version
   const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
   const currentVersion = pkg.version;
   info(`Current version: ${currentVersion}`);
 
-  // Check latest version on npm
   log('Checking npm registry...');
   const latestVersion = exec('npm view aiox-opencode-adapter version');
   if (!latestVersion) {
@@ -400,7 +374,6 @@ function cmdUpdate() {
 
   log(`\nUpdate available: ${currentVersion} → ${latestVersion}`);
 
-  // Backup custom agents
   const customDir = path.join(OPENCODE_DIR, 'custom');
   if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
     const customAgents = fs.readdirSync(OPENCODE_AGENTS_DIR)
@@ -419,7 +392,6 @@ function cmdUpdate() {
     }
   }
 
-  // Update npm package
   log('\nUpdating npm package...');
   const updateResult = exec('npm install -g aiox-opencode-adapter@latest');
   if (!updateResult) {
@@ -428,11 +400,9 @@ function cmdUpdate() {
   }
   ok('npm package updated');
 
-  // Reinstall agents
   log('\nReinstalling agents...');
   cmdInit();
 
-  // Restore custom agents
   if (fs.existsSync(customDir)) {
     const customAgents = fs.readdirSync(customDir).filter(f => f.endsWith('.md'));
     if (customAgents.length > 0) {
@@ -449,7 +419,6 @@ function cmdUpdate() {
   log('Run "aiox-global doctor" to verify installation.');
 }
 
-// ─── customize ─────────────────────────────────────────
 function cmdCustomize(agentName) {
   if (!agentName) {
     log('Usage: aiox-global customize <agent-name>\n');
@@ -475,13 +444,11 @@ function cmdCustomize(agentName) {
     return;
   }
 
-  // Ensure custom directory exists
   const customDir = path.join(OPENCODE_DIR, 'custom');
   if (!fs.existsSync(customDir)) {
     fs.mkdirSync(customDir, { recursive: true });
   }
 
-  // Copy agent to custom directory
   const customPath = path.join(customDir, agentFile);
   fs.copyFileSync(agentPath, customPath);
 
@@ -491,7 +458,6 @@ function cmdCustomize(agentName) {
   log('Custom agents are preserved during updates.');
 }
 
-// ─── preset ────────────────────────────────────────────
 const PRESETS = {
   dev: {
     name: 'Developer',
@@ -542,7 +508,6 @@ function cmdPreset(presetName) {
 
   log(`Applying preset: ${preset.name}\n`);
 
-  // Ensure agents directory exists
   if (!fs.existsSync(OPENCODE_AGENTS_DIR)) {
     fs.mkdirSync(OPENCODE_AGENTS_DIR, { recursive: true });
   }
@@ -566,21 +531,17 @@ function cmdPreset(presetName) {
   log('Run "aiox-global config" to update OpenCode configuration.');
 }
 
-// ─── auto-setup ─────────────────────────────────────────
 function cmdAutoSetup() {
   log('AIOX Auto-Setup: Configuring everything automatically...\n');
 
-  // Step 1: Init agents
   log('Step 1/3: Installing agents...');
   cmdInit();
   console.log('');
 
-  // Step 2: Config (auto-detects MCPs)
   log('Step 2/3: Generating configuration...');
   cmdConfig();
   console.log('');
 
-  // Step 3: Doctor check
   log('Step 3/3: Verifying installation...');
   cmdDoctor();
 
@@ -590,7 +551,6 @@ function cmdAutoSetup() {
   log('Example: @dev, @architect, @cybersec');
 }
 
-// ─── uninstall ───────────────────────────────────────────
 function cmdUninstall() {
   log('Removing AIOX agents...\n');
 
@@ -613,7 +573,6 @@ function cmdUninstall() {
   log('Note: Other custom agents in ~/.config/opencode/agents/ were not touched.');
 }
 
-// ─── main ────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const cmd = args[0];
 
