@@ -1,6 +1,6 @@
 {
   "name": "aiox-opencode-adapter",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "AIOX Agents for OpenCode - Use AIOX agents globally in any project. Based on AIOX Framework by SynkraAI.",
   "main": "bin/aiox-global.js",
   "bin": {
@@ -11,7 +11,8 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "validate": "node scripts/validate-agents.js"
+    "validate": "node scripts/validate-agents.js",
+    "prepublishOnly": "npm test && npm run validate"
   },
   "keywords": [
     "aiox",
@@ -46,7 +47,8 @@
     "LICENSE",
     "README.md",
     "README.en.md",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "CHANGELOG.md"
   ],
   "devDependencies": {
     "jest": "^29.7.0"

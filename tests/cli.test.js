@@ -93,6 +93,8 @@ describe('AIOX Global CLI', () => {
 
   describe('uninstall command', () => {
     test('should remove AIOX agents', () => {
+      // Ensure agents are installed first
+      run('init');
       const output = run('uninstall');
       expect(output).toContain('Removing AIOX agents');
       expect(output).toMatch(/✓|Removed/);

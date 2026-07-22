@@ -252,6 +252,48 @@ source ~/.bashrc
 
 After installing the package, run the following commands:
 
+### Option 1: Automatic Configuration (Recommended)
+
+```bash
+aiox-global auto-setup
+```
+
+This command:
+- Installs all 12 agents
+- Auto-detects and configures MCPs
+- Generates the configuration file
+- Verifies the installation
+
+Expected output:
+
+```
+[AIOX] AIOX Auto-Setup: Configuring everything automatically...
+
+[AIOX] Step 1/3: Installing agents...
+[AIOX] Installing AIOX agents globally for OpenCode...
+  ✓ dev.md -> /home/your-user/.config/opencode/agents/dev.md
+  ✓ architect.md -> /home/your-user/.config/opencode/agents/architect.md
+  ...
+[AIOX] Installed 12/12 agents.
+
+[AIOX] Step 2/3: Generating configuration...
+[AIOX] Generating OpenCode config...
+  ✓ HexStrike MCP configured
+  ✓ Config written to /home/your-user/.config/opencode/opencode.json
+
+[AIOX] Step 3/3: Verifying installation...
+[AIOX] Checking AIOX global installation...
+  ✓ Node.js v20.10.0
+  ✓ Config directory: /home/your-user/.config/opencode/agents
+  ✓ All 12 AIOX agents installed
+
+[AIOX] Auto-setup complete!
+```
+
+### Option 2: Manual Configuration
+
+If you prefer to configure step by step:
+
 ### Step 1: Install Agents
 
 ```bash
@@ -311,6 +353,45 @@ Expected output:
 ### Step 3: Restart OpenCode
 
 Close and reopen OpenCode. The agents will be available.
+
+---
+
+## Customization
+
+### Presets
+
+Use presets to install only the agents you need:
+
+```bash
+# Development team
+aiox-global preset dev
+
+# Pentest and security
+aiox-global preset pentest
+
+# Complete team
+aiox-global preset fullstack
+
+# Project management
+aiox-global preset agile
+
+# Just the basics
+aiox-global preset minimal
+```
+
+### Customizing Agents
+
+To customize an agent:
+
+```bash
+# Copy agent to customization directory
+aiox-global customize dev
+
+# Edit the customized agent
+# The file will be at: ~/.config/opencode/custom/dev.md
+```
+
+Custom agents are preserved during updates.
 
 ---
 

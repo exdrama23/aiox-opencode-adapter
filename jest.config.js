@@ -5,4 +5,5 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
   verbose: true,
+  maxWorkers: 1,
 };

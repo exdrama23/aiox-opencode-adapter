@@ -252,7 +252,47 @@ source ~/.bashrc
 
 Apos instalar o pacote, execute os seguintes comandos:
 
-### Passo 1: Instalar os Agentes
+### Opcao 1: Configuracao Automatica (Recomendado)
+
+```bash
+aiox-global auto-setup
+```
+
+Este comando:
+- Instala todos os 12 agentes
+- Detecta e configura MCPs automaticamente
+- Gera o arquivo de configuracao
+- Verifica a instalacao
+
+Saida esperada:
+
+```
+[AIOX] AIOX Auto-Setup: Configuring everything automatically...
+
+[AIOX] Step 1/3: Installing agents...
+[AIOX] Installing AIOX agents globally for OpenCode...
+  ✓ dev.md -> C:\Users\seu-usuario\.config\opencode\agents\dev.md
+  ✓ architect.md -> C:\Users\seu-usuario\.config\opencode\agents\architect.md
+  ...
+[AIOX] Installed 12/12 agents.
+
+[AIOX] Step 2/3: Generating configuration...
+[AIOX] Generating OpenCode config...
+  ✓ HexStrike MCP configured
+  ✓ Config written to C:\Users\seu-usuario\.config\opencode\opencode.json
+
+[AIOX] Step 3/3: Verifying installation...
+[AIOX] Checking AIOX global installation...
+  ✓ Node.js v20.10.0
+  ✓ Config directory: C:\Users\seu-usuario\.config\opencode\agents
+  ✓ All 12 AIOX agents installed
+
+[AIOX] Auto-setup complete!
+```
+
+### Opcao 2: Configuracao Manual
+
+Se preferir configurar passo a passo:
 
 ```bash
 aiox-global init
@@ -311,6 +351,45 @@ Saida esperada:
 ### Passo 3: Reiniciar o OpenCode
 
 Feche e abra novamente o OpenCode. Os agentes estaram disponiveis.
+
+---
+
+## Personalizacao
+
+### Presets
+
+Use presets para instalar apenas os agentes que precisa:
+
+```bash
+# Time de desenvolvimento
+aiox-global preset dev
+
+# Pentest e seguranca
+aiox-global preset pentest
+
+# Time completo
+aiox-global preset fullstack
+
+# Gestao de projetos
+aiox-global preset agile
+
+# Apenas o basico
+aiox-global preset minimal
+```
+
+### Personalizar Agentes
+
+Para personalizar um agente:
+
+```bash
+# Copiar agente para diretorio de personalizacao
+aiox-global customize dev
+
+# Editar o agente personalizado
+# O arquivo estara em: ~/.config/opencode/custom/dev.md
+```
+
+Agentes personalizados sao preservados durante atualizacoes.
 
 ---
 

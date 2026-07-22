@@ -566,6 +566,30 @@ function cmdPreset(presetName) {
   log('Run "aiox-global config" to update OpenCode configuration.');
 }
 
+// ─── auto-setup ─────────────────────────────────────────
+function cmdAutoSetup() {
+  log('AIOX Auto-Setup: Configuring everything automatically...\n');
+
+  // Step 1: Init agents
+  log('Step 1/3: Installing agents...');
+  cmdInit();
+  console.log('');
+
+  // Step 2: Config (auto-detects MCPs)
+  log('Step 2/3: Generating configuration...');
+  cmdConfig();
+  console.log('');
+
+  // Step 3: Doctor check
+  log('Step 3/3: Verifying installation...');
+  cmdDoctor();
+
+  console.log('');
+  log('Auto-setup complete!');
+  log('You can now use OpenCode with AIOX agents.');
+  log('Example: @dev, @architect, @cybersec');
+}
+
 // ─── uninstall ───────────────────────────────────────────
 function cmdUninstall() {
   log('Removing AIOX agents...\n');
@@ -630,6 +654,10 @@ switch (cmd) {
   case 'template':
     cmdPreset(args[1]);
     break;
+  case 'auto-setup':
+  case 'setup':
+    cmdAutoSetup();
+    break;
   case 'uninstall':
   case 'remove':
     cmdUninstall();
@@ -645,6 +673,7 @@ Based on AIOX Framework by SynkraAI (MIT License)
 https://github.com/SynkraAI/aiox-core
 
 Commands:
+  aiox-global auto-setup      Full automatic setup (recommended)
   aiox-global init            Install agents globally for OpenCode
   aiox-global config          Generate opencode.json with auto-detected MCPs
   aiox-global setup-hexstrike Install HexStrike AI pentesting MCP
