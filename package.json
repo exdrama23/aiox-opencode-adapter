@@ -49,6 +49,6 @@
     "CONTRIBUTING.md"
   ],
   "devDependencies": {
-    "jest": "^30.4.2"
+    "jest": "^29.7.0"
   }
 }
