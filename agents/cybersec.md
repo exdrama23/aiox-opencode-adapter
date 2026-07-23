@@ -1,6 +1,6 @@
 ---
 description: "Kira - Cybersecurity Analyst. Pentesting, vulnerability scanning, security audit, threat analysis."
-mode: subagent
+mode: primary
 color: "#ff0000"
 version: "1.0.0"
 permission:

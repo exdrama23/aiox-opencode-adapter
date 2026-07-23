@@ -5,6 +5,46 @@ const AGENTS_DIR = path.join(__dirname, '..', 'agents');
 const REQUIRED_FIELDS = ['description', 'mode'];
 const VALID_MODES = ['primary', 'subagent'];
 
+// Agent name mapping (filename -> expected name in description)
+const AGENT_NAMES = {
+  'aiox-master.md': 'Orion',
+  'dev.md': 'Dex',
+  'architect.md': 'Aria',
+  'sm.md': 'River',
+  'pm.md': 'Morgan',
+  'po.md': 'Pax',
+  'qa.md': 'Quinn',
+  'analyst.md': 'Atlas',
+  'devops.md': 'Gage',
+  'data-engineer.md': 'Dara',
+  'ux-design-expert.md': 'Uma',
+  'squad-creator.md': 'Craft',
+  'cybersec.md': 'Kira'
+};
+
+// Expected modes for agents
+const AGENT_MODES = {
+  'aiox-master.md': 'primary',
+  'cybersec.md': 'primary'
+};
+
+// Expected colors for agents
+const AGENT_COLORS = {
+  'aiox-master.md': '#9C27B0',
+  'dev.md': '#4CAF50',
+  'architect.md': '#2196F3',
+  'sm.md': '#00BCD4',
+  'pm.md': '#FF9800',
+  'po.md': '#FF5722',
+  'qa.md': '#E91E63',
+  'analyst.md': '#607D8B',
+  'devops.md': '#795548',
+  'data-engineer.md': '#3F51B5',
+  'ux-design-expert.md': '#FF4081',
+  'squad-creator.md': '#009688',
+  'cybersec.md': '#ff0000'
+};
+
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
@@ -100,6 +140,31 @@ function validateAgents() {
     if (frontmatter.mode && !VALID_MODES.includes(frontmatter.mode)) {
       console.error(`  Error: Invalid mode: ${frontmatter.mode}. Must be: ${VALID_MODES.join(', ')}`);
       errors++;
+    }
+
+    // Check agent name
+    const expectedName = AGENT_NAMES[agentFile];
+    if (expectedName && frontmatter.description) {
+      if (!frontmatter.description.includes(expectedName)) {
+        console.warn(`  Warning: Agent name "${expectedName}" not found in description`);
+        warnings++;
+      }
+    }
+
+    // Check expected mode
+    const expectedMode = AGENT_MODES[agentFile];
+    if (expectedMode && frontmatter.mode !== expectedMode) {
+      console.error(`  Error: Expected mode "${expectedMode}" but found "${frontmatter.mode}"`);
+      errors++;
+    }
+
+    // Check color
+    const expectedColor = AGENT_COLORS[agentFile];
+    if (expectedColor && frontmatter.color) {
+      if (frontmatter.color.toLowerCase() !== expectedColor.toLowerCase()) {
+        console.warn(`  Warning: Expected color "${expectedColor}" but found "${frontmatter.color}"`);
+        warnings++;
+      }
     }
 
     if (frontmatter.description && frontmatter.description.length < 10) {

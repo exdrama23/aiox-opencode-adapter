@@ -40,6 +40,9 @@ function readCache() {
     if (!fs.existsSync(CACHE_DIR)) {
       fs.mkdirSync(CACHE_DIR, { recursive: true });
     }
+    if (!fs.existsSync(CACHE_FILE)) {
+      return null;
+    }
     const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
     if (Date.now() - data.checkedAt < CACHE_TTL) {
       return data;

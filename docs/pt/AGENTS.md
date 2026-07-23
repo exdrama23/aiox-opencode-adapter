@@ -24,18 +24,18 @@ O AIOX OpenCode Adapter inclui 13 agentes de IA especializados. Cada agente tem 
 | Agente | Nome | Papel | Modo | Cor |
 |--------|------|-------|------|-----|
 | `@aiox-master` | Orion | Orquestrador Mestre | primary | #9C27B0 |
-| `@dev` | Dex | Desenvolvedor Full Stack | subagent | #2196F3 |
-| `@architect` | Aria | Arquiteta de Sistemas | subagent | #9C27B0 |
-| `@sm` | Sage | Scrum Master | subagent | #4CAF50 |
-| `@pm` | Pulse | Product Manager | subagent | #FF9800 |
-| `@po` | Pixel | Product Owner | subagent | #E91E63 |
-| `@qa` | Quartz | Garantia de Qualidade | subagent | #F44336 |
-| `@analyst` | Apex | Analista de Negocios | subagent | #00BCD4 |
-| `@devops` | Flux | Engenheiro DevOps | subagent | #607D8B |
-| `@data-engineer` | Schema | Engenheira de Dados | subagent | #795548 |
-| `@ux-design-expert` | Vista | Design UX/UI | subagent | #E91E63 |
-| `@squad-creator` | Nexus | Criador de Squads | subagent | #673AB7 |
-| `@cybersec` | Kira | Analista de Seguranca | subagent | #F44336 |
+| `@dev` | Dex | Desenvolvedor Full Stack | subagent | #4CAF50 |
+| `@architect` | Aria | Arquiteta de Sistemas | subagent | #2196F3 |
+| `@sm` | River | Scrum Master | subagent | #00BCD4 |
+| `@pm` | Morgan | Product Manager | subagent | #FF9800 |
+| `@po` | Pax | Product Owner | subagent | #FF5722 |
+| `@qa` | Quinn | Garantia de Qualidade | subagent | #E91E63 |
+| `@analyst` | Atlas | Analista de Negocios | subagent | #607D8B |
+| `@devops` | Gage | Engenheiro DevOps | subagent | #795548 |
+| `@data-engineer` | Dara | Engenheira de Dados | subagent | #3F51B5 |
+| `@ux-design-expert` | Uma | Design UX/UI | subagent | #FF4081 |
+| `@squad-creator` | Craft | Criador de Squads | subagent | #009688 |
+| `@cybersec` | Kira | Analista de Seguranca | subagent | #ff0000 |
 
 ---
 
@@ -177,7 +177,7 @@ Aria vai:
 
 ---
 
-### @sm (Sage)
+### @sm (River)
 
 **Descricao:** Scrum Master. Gerencia sprints e cria historias de usuario detalhadas.
 
@@ -200,7 +200,7 @@ Aria vai:
 ```
 
 **Resposta esperada:**
-Sage vai:
+River vai:
 1. Decompor o modulo em funcionalidades
 2. Criar historias com criterios de aceite
 3. Estimar esforco
@@ -209,7 +209,7 @@ Sage vai:
 
 ---
 
-### @pm (Pulse)
+### @pm (Morgan)
 
 **Descricao:** Product Manager. Cria PRD, gerencia epics e define estrategia de produto.
 
@@ -232,7 +232,7 @@ Sage vai:
 ```
 
 **Resposta esperada:**
-Pulse vai:
+Morgan vai:
 1. Definir publico-alvo
 2. Listar funcionalidades principais
 3. Definir prioridades (MVP vs futuro)
@@ -241,7 +241,7 @@ Pulse vai:
 
 ---
 
-### @po (Pixel)
+### @po (Pax)
 
 **Descricao:** Product Owner. Gerencia backlog e aplica Definition of Done.
 
@@ -264,7 +264,7 @@ Pulse vai:
 ```
 
 **Resposta esperada:**
-Pixel vai:
+Pax vai:
 1. Revisar historias existentes
 2. Adicionar criterios de aceite
 3. Verificar estimativas
@@ -273,7 +273,7 @@ Pixel vai:
 
 ---
 
-### @qa (Quartz)
+### @qa (Quinn)
 
 **Descricao:** Garantia de Qualidade. Revisa codigo, aplica gates de qualidade e executa testes.
 
@@ -296,7 +296,7 @@ Pixel vai:
 ```
 
 **Resposta esperada:**
-Quartz vai:
+Quinn vai:
 1. Analisar o codigo linha por linha
 2. Identificar problemas de seguranca
 3. Verificar padroes de codigo
@@ -305,7 +305,7 @@ Quartz vai:
 
 ---
 
-### @analyst (Apex)
+### @analyst (Atlas)
 
 **Descricao:** Analista de Negocios. Faz pesquisa de mercado, analisa concorrencia e levanta requisitos.
 
@@ -328,7 +328,7 @@ Quartz vai:
 ```
 
 **Resposta esperada:**
-Apex vai:
+Atlas vai:
 1. Listar aplicativos principais (Netflix, Spotify, etc.)
 2. Analisar funcionalidades
 3. Identificar diferencias
@@ -337,7 +337,7 @@ Apex vai:
 
 ---
 
-### @devops (Flux)
+### @devops (Gage)
 
 **Descricao:** Engenheiro DevOps. Gerencia git push, criacao de PRs, CI/CD e deploy. E o UNICO agente que pode fazer push para o remoto.
 
@@ -361,7 +361,7 @@ Apex vai:
 ```
 
 **Resposta esperada:**
-Flux vai:
+Gage vai:
 1. Verificar alteracoes no git
 2. Criar branch com nome descritivo
 3. Commitar com mensagem clara
@@ -370,7 +370,7 @@ Flux vai:
 
 ---
 
-### @data-engineer (Schema)
+### @data-engineer (Dara)
 
 **Descricao:** Engenheira de Dados. Projeta schemas de banco de dados, migracoes e otimiza queries.
 
@@ -394,7 +394,7 @@ Flux vai:
 ```
 
 **Resposta esperada:**
-Schema vai:
+Dara vai:
 1. Listar entidades principais (usuarios, produtos, pedidos)
 2. Definir tabelas e colunas
 3. Criar relacoes (FK)
@@ -403,7 +403,7 @@ Schema vai:
 
 ---
 
-### @ux-design-expert (Vista)
+### @ux-design-expert (Uma)
 
 **Descricao:** Design UX/UI. Cria design systems, wireframes e garante acessibilidade.
 
@@ -426,7 +426,7 @@ Schema vai:
 ```
 
 **Resposta esperada:**
-Vista vai:
+Uma vai:
 1. Definir paleta de cores
 2. Criar tipografia
 3. Definir espacamento
@@ -435,7 +435,7 @@ Vista vai:
 
 ---
 
-### @squad-creator (Nexus)
+### @squad-creator (Craft)
 
 **Descricao:** Criador de Squads. Cria, valida e publica squads de agentes para workflows automatizados.
 
@@ -457,7 +457,7 @@ Vista vai:
 ```
 
 **Resposta esperada:**
-Nexus vai:
+Craft vai:
 1. Definir agentes necessarios
 2. Configurar permissoes
 3. Criar workflows
@@ -630,7 +630,7 @@ Kira executa:
 ```
 Usuario: @qa Revise o codigo do src/auth.js
 
-Quartz executa:
+Quinn executa:
 1. Analise estatica
    → Verifica padroes de codigo
 2. Analise de seguranca

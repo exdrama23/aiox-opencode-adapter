@@ -24,18 +24,18 @@ The AIOX OpenCode Adapter includes 13 specialized AI agents. Each agent has a sp
 | Agent | Name | Role | Mode | Color |
 |-------|------|------|------|-------|
 | `@aiox-master` | Orion | Master Orchestrator | primary | #9C27B0 |
-| `@dev` | Dex | Full Stack Developer | subagent | #2196F3 |
-| `@architect` | Aria | System Architect | subagent | #9C27B0 |
-| `@sm` | Sage | Scrum Master | subagent | #4CAF50 |
-| `@pm` | Pulse | Product Manager | subagent | #FF9800 |
-| `@po` | Pixel | Product Owner | subagent | #E91E63 |
-| `@qa` | Quartz | Quality Assurance | subagent | #F44336 |
-| `@analyst` | Apex | Business Analyst | subagent | #00BCD4 |
-| `@devops` | Flux | DevOps Engineer | subagent | #607D8B |
-| `@data-engineer` | Schema | Data Engineer | subagent | #795548 |
-| `@ux-design-expert` | Vista | UX/UI Designer | subagent | #E91E63 |
-| `@squad-creator` | Nexus | Squad Creator | subagent | #673AB7 |
-| `@cybersec` | Kira | Security Analyst | subagent | #F44336 |
+| `@dev` | Dex | Full Stack Developer | subagent | #4CAF50 |
+| `@architect` | Aria | System Architect | subagent | #2196F3 |
+| `@sm` | River | Scrum Master | subagent | #00BCD4 |
+| `@pm` | Morgan | Product Manager | subagent | #FF9800 |
+| `@po` | Pax | Product Owner | subagent | #FF5722 |
+| `@qa` | Quinn | Quality Assurance | subagent | #E91E63 |
+| `@analyst` | Atlas | Business Analyst | subagent | #607D8B |
+| `@devops` | Gage | DevOps Engineer | subagent | #795548 |
+| `@data-engineer` | Dara | Data Engineer | subagent | #3F51B5 |
+| `@ux-design-expert` | Uma | UX/UI Designer | subagent | #FF4081 |
+| `@squad-creator` | Craft | Squad Creator | subagent | #009688 |
+| `@cybersec` | Kira | Security Analyst | subagent | #ff0000 |
 
 ---
 
@@ -177,7 +177,7 @@ Aria will:
 
 ---
 
-### @sm (Sage)
+### @sm (River)
 
 **Description:** Scrum Master. Manages sprints and creates detailed user stories.
 
@@ -200,7 +200,7 @@ Aria will:
 ```
 
 **Expected response:**
-Sage will:
+River will:
 1. Break down the module into features
 2. Create stories with acceptance criteria
 3. Estimate effort
@@ -209,7 +209,7 @@ Sage will:
 
 ---
 
-### @pm (Pulse)
+### @pm (Morgan)
 
 **Description:** Product Manager. Creates PRDs, manages epics, and defines product strategy.
 
@@ -232,7 +232,7 @@ Sage will:
 ```
 
 **Expected response:**
-Pulse will:
+Morgan will:
 1. Define target audience
 2. List main features
 3. Define priorities (MVP vs future)
@@ -241,7 +241,7 @@ Pulse will:
 
 ---
 
-### @po (Pixel)
+### @po (Pax)
 
 **Description:** Product Owner. Manages backlog and applies Definition of Done.
 
@@ -264,7 +264,7 @@ Pulse will:
 ```
 
 **Expected response:**
-Pixel will:
+Pax will:
 1. Review existing stories
 2. Add acceptance criteria
 3. Verify estimates
@@ -273,7 +273,7 @@ Pixel will:
 
 ---
 
-### @qa (Quartz)
+### @qa (Quinn)
 
 **Description:** Quality Assurance. Reviews code, applies quality gates, and runs tests.
 
@@ -296,7 +296,7 @@ Pixel will:
 ```
 
 **Expected response:**
-Quartz will:
+Quinn will:
 1. Analyze code line by line
 2. Identify security issues
 3. Check code patterns
@@ -305,7 +305,7 @@ Quartz will:
 
 ---
 
-### @analyst (Apex)
+### @analyst (Atlas)
 
 **Description:** Business Analyst. Does market research, analyzes competition, and gathers requirements.
 
@@ -328,7 +328,7 @@ Quartz will:
 ```
 
 **Expected response:**
-Apex will:
+Atlas will:
 1. List main apps (Netflix, Spotify, etc.)
 2. Analyze features
 3. Identify differentiators
@@ -337,7 +337,7 @@ Apex will:
 
 ---
 
-### @devops (Flux)
+### @devops (Gage)
 
 **Description:** DevOps Engineer. Manages git push, PR creation, CI/CD, and deployment. The ONLY agent that can push to remote.
 
@@ -361,7 +361,7 @@ Apex will:
 ```
 
 **Expected response:**
-Flux will:
+Gage will:
 1. Check git changes
 2. Create branch with descriptive name
 3. Commit with clear message
@@ -370,7 +370,7 @@ Flux will:
 
 ---
 
-### @data-engineer (Schema)
+### @data-engineer (Dara)
 
 **Description:** Data Engineer. Designs database schemas, migrations, and optimizes queries.
 
@@ -394,7 +394,7 @@ Flux will:
 ```
 
 **Expected response:**
-Schema will:
+Dara will:
 1. List main entities (users, products, orders)
 2. Define tables and columns
 3. Create relationships (FK)
@@ -403,7 +403,7 @@ Schema will:
 
 ---
 
-### @ux-design-expert (Vista)
+### @ux-design-expert (Uma)
 
 **Description:** UX/UI Designer. Creates design systems, wireframes, and ensures accessibility.
 
@@ -426,7 +426,7 @@ Schema will:
 ```
 
 **Expected response:**
-Vista will:
+Uma will:
 1. Define color palette
 2. Create typography
 3. Define spacing
@@ -435,7 +435,7 @@ Vista will:
 
 ---
 
-### @squad-creator (Nexus)
+### @squad-creator (Craft)
 
 **Description:** Squad Creator. Creates, validates, and publishes agent squads for automated workflows.
 
@@ -457,7 +457,7 @@ Vista will:
 ```
 
 **Expected response:**
-Nexus will:
+Craft will:
 1. Define necessary agents
 2. Configure permissions
 3. Create workflows
@@ -630,7 +630,7 @@ Kira executes:
 ```
 User: @qa Review the code in src/auth.js
 
-Quartz executes:
+Quinn executes:
 1. Static analysis
    → Checks code patterns
 2. Security analysis

@@ -17,15 +17,15 @@ Use agentes [AIOX](https://github.com/SynkraAI/aiox-core) globalmente no [OpenCo
 | `@aiox-master` | Orion | Orquestrador Mestre | primary |
 | `@dev` | Dex | Desenvolvedor Full Stack | subagent |
 | `@architect` | Aria | Arquiteta de Sistemas | subagent |
-| `@sm` | Sage | Scrum Master | subagent |
-| `@pm` | Pulse | Product Manager | subagent |
-| `@po` | Pixel | Product Owner | subagent |
-| `@qa` | Quartz | Garantia de Qualidade | subagent |
-| `@analyst` | Apex | Analista de Negocios | subagent |
-| `@devops` | Flux | Engenheiro DevOps | subagent |
-| `@data-engineer` | Schema | Engenheira de Dados | subagent |
-| `@ux-design-expert` | Vista | Design UX/UI | subagent |
-| `@squad-creator` | Nexus | Criador de Squads | subagent |
+| `@sm` | River | Scrum Master | subagent |
+| `@pm` | Morgan | Product Manager | subagent |
+| `@po` | Pax | Product Owner | subagent |
+| `@qa` | Quinn | Garantia de Qualidade | subagent |
+| `@analyst` | Atlas | Analista de Negocios | subagent |
+| `@devops` | Gage | Engenheiro DevOps | subagent |
+| `@data-engineer` | Dara | Engenheira de Dados | subagent |
+| `@ux-design-expert` | Uma | Design UX/UI | subagent |
+| `@squad-creator` | Craft | Criador de Squads | subagent |
 | `@cybersec` | Kira | Analista de Seguranca | subagent |
 
 ## Pre-requisitos
@@ -64,6 +64,7 @@ aiox-global list              # Lista agentes instalados
 aiox-global doctor            # Verifica saude da instalacao
 aiox-global uninstall         # Remove agentes AIOX
 aiox-global help              # Exibe ajuda
+aiox-global --version         # Exibe a versao instalada
 ```
 
 ## Configuracao dos MCPs (Opcional)
@@ -100,13 +101,13 @@ Apos a instalacao, reinicie o OpenCode. Voce tera:
 Usuario: "Crie uma API REST para gerenciamento de tarefas"
 
 aiox-master (Orion) orquestra:
-  1. @analyst (Apex) - Analisa requisitos
+  1. @analyst (Atlas) - Analisa requisitos
   2. @architect (Aria) - Define arquitetura
-  3. @pm (Pulse) - Cria historias
-  4. @sm (Sage) - Planeja sprints
+  3. @pm (Morgan) - Cria historias
+  4. @sm (River) - Planeja sprints
   5. @dev (Dex) - Implementa codigo
-  6. @qa (Quartz) - Testa e revisa
-  7. @devops (Flux) - Faz deploy
+  6. @qa (Quinn) - Testa e revisa
+  7. @devops (Gage) - Faz deploy
 ```
 
 ## Atribuicao

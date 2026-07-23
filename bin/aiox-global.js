@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -15,6 +16,7 @@ const { checkForUpdate } = require('./update-checker');
 checkForUpdate();
 
 const AGENTS = [
+  'aiox-master.md',
   'dev.md',
   'architect.md',
   'sm.md',
@@ -621,6 +623,11 @@ switch (cmd) {
   case 'remove':
     cmdUninstall();
     break;
+  case '--version':
+  case '-v':
+    const versionPkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
+    console.log(versionPkg.version);
+    break;
   case 'help':
   case undefined:
     const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
@@ -644,6 +651,7 @@ Commands:
   aiox-global doctor          Check installation health
   aiox-global uninstall       Remove AIOX agents
   aiox-global help            Show this help
+  aiox-global --version       Show version
 `);
     break;
   default:

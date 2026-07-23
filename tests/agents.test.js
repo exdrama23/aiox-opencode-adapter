@@ -108,8 +108,8 @@ describe('Agent Validation', () => {
   });
 
   describe('Agent Count', () => {
-    test('should have exactly 12 agents', () => {
-      expect(agentFiles.length).toBe(12);
+    test('should have exactly 13 agents', () => {
+      expect(agentFiles.length).toBe(13);
     });
   });
 });

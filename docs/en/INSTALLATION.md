@@ -259,7 +259,7 @@ aiox-global auto-setup
 ```
 
 This command:
-- Installs all 12 agents
+- Installs all 13 agents
 - Auto-detects and configures MCPs
 - Generates the configuration file
 - Verifies the installation
@@ -274,7 +274,7 @@ Expected output:
   ✓ dev.md -> /home/your-user/.config/opencode/agents/dev.md
   ✓ architect.md -> /home/your-user/.config/opencode/agents/architect.md
   ...
-[AIOX] Installed 12/12 agents.
+[AIOX] Installed 13/13 agents.
 
 [AIOX] Step 2/3: Generating configuration...
 [AIOX] Generating OpenCode config...
@@ -323,7 +323,7 @@ Expected output:
   ✓ squad-creator.md -> /home/your-user/.config/opencode/agents/squad-creator.md
   ✓ cybersec.md -> /home/your-user/.config/opencode/agents/cybersec.md
 
-[AIOX] Installed 12/12 agents.
+[AIOX] Installed 13/13 agents.
 ```
 
 ### Step 2: Generate Configuration

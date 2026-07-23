@@ -41,6 +41,7 @@ Abra o OpenCode e use os agentes:
 | `aiox-global list` | Listar agentes instalados |
 | `aiox-global doctor` | Verificar instalacao |
 | `aiox-global update` | Atualizar para versao mais recente |
+| `aiox-global --version` | Exibir versao instalada |
 
 ---
 

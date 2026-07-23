@@ -17,15 +17,15 @@ Use [AIOX](https://github.com/SynkraAI/aiox-core) agents globally in [OpenCode](
 | `@aiox-master` | Orion | Master Orchestrator | primary |
 | `@dev` | Dex | Full Stack Developer | subagent |
 | `@architect` | Aria | System Architect | subagent |
-| `@sm` | Sage | Scrum Master | subagent |
-| `@pm` | Pulse | Product Manager | subagent |
-| `@po` | Pixel | Product Owner | subagent |
-| `@qa` | Quartz | Quality Assurance | subagent |
-| `@analyst` | Apex | Business Analyst | subagent |
-| `@devops` | Flux | DevOps Engineer | subagent |
-| `@data-engineer` | Schema | Data Engineer | subagent |
-| `@ux-design-expert` | Vista | UX/UI Designer | subagent |
-| `@squad-creator` | Nexus | Squad Creator | subagent |
+| `@sm` | River | Scrum Master | subagent |
+| `@pm` | Morgan | Product Manager | subagent |
+| `@po` | Pax | Product Owner | subagent |
+| `@qa` | Quinn | Quality Assurance | subagent |
+| `@analyst` | Atlas | Business Analyst | subagent |
+| `@devops` | Gage | DevOps Engineer | subagent |
+| `@data-engineer` | Dara | Data Engineer | subagent |
+| `@ux-design-expert` | Uma | UX/UI Designer | subagent |
+| `@squad-creator` | Craft | Squad Creator | subagent |
 | `@cybersec` | Kira | Security Analyst | subagent |
 
 ## Prerequisites
@@ -64,6 +64,7 @@ aiox-global list              # List installed agents
 aiox-global doctor            # Check installation health
 aiox-global uninstall         # Remove AIOX agents
 aiox-global help              # Show help
+aiox-global --version         # Show installed version
 ```
 
 ## MCP Configuration (Optional)
@@ -100,13 +101,13 @@ After installation, restart OpenCode. You will have:
 User: "Create a REST API for task management"
 
 aiox-master (Orion) orchestrates:
-  1. @analyst (Apex) - Analyzes requirements
+  1. @analyst (Atlas) - Analyzes requirements
   2. @architect (Aria) - Defines architecture
-  3. @pm (Pulse) - Creates user stories
-  4. @sm (Sage) - Plans sprints
+  3. @pm (Morgan) - Creates user stories
+  4. @sm (River) - Plans sprints
   5. @dev (Dex) - Implements code
-  6. @qa (Quartz) - Tests and reviews
-  7. @devops (Flux) - Deploys
+  6. @qa (Quinn) - Tests and reviews
+  7. @devops (Gage) - Deploys
 ```
 
 ## Attribution

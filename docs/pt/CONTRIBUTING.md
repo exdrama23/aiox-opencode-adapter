@@ -73,7 +73,10 @@ aiox-opencode-adapter/
    ---
    ```
 2. Adicione ao array `AGENTS` em `bin/aiox-global.js`
-3. Atualize a documentacao em `docs/pt/AGENTS.md` e `docs/en/AGENTS.md`
+3. Adicione o mapeamento do nome do agente em `AGENT_NAMES` em `scripts/validate-agents.js`
+4. Adicione o mode esperado em `AGENT_MODES` em `scripts/validate-agents.js` (se for primary)
+5. Adicione a cor esperada em `AGENT_COLORS` em `scripts/validate-agents.js`
+6. Atualize a documentacao em `docs/pt/AGENTS.md` e `docs/en/AGENTS.md`
 
 ### Licenca
 

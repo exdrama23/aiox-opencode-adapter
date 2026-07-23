@@ -5,6 +5,30 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.2.0] - 2026-07-23
+
+### Adicionado
+- Shebang `#!/usr/bin/env node` no `bin/aiox-global.js` (compatibilidade Linux/macOS)
+- Comando `aiox-global --version` / `-v` para exibir versao
+- Agente `@aiox-master` (Orion) adicionado ao array AGENTS
+- Agente `@cybersec` (Kira) alterado para `mode: primary` (aparece no Tab)
+- 3 novos exemplos de workflow no aiox-master: Scrum/Agile, Product Owner, Squad Creation
+- Secao TASK ROUTING com mapeamento de keywords para agentes
+- Secao DECOMPOSITION RULES para quebrar tarefas complexas
+- Secao COMPLETION VERIFICATION para validar resultados
+- Secao ERROR HANDLING detalhado para tratamento de falhas
+
+### Corrigido
+- Nomes dos agentes na documentacao agora correspondem aos arquivos .md reais
+- Cores dos agentes na documentacao agora correspondem aos arquivos .md reais
+- `package.json`: homepage e bugs apontam para o repositorio correto
+- `package.json`: engines atualizado para `>=18.0.0`
+- Numero de agentes padronizado para 13 em toda documentacao
+
+### Documentacao
+- Guia dos Agentes (PT/EN) atualizado com nomes e cores corretos
+- README.md e README.en.md atualizados
+
 ## [1.1.0] - 2026-07-22
 
 ### Adicionado
@@ -53,13 +77,13 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - @aiox-master (Orion) - Orquestrador Mestre
 - @dev (Dex) - Desenvolvedor Full Stack
 - @architect (Aria) - Arquiteta de Sistemas
-- @sm (Sage) - Scrum Master
-- @pm (Pulse) - Product Manager
-- @po (Pixel) - Product Owner
-- @qa (Quartz) - Garantia de Qualidade
-- @analyst (Apex) - Analista de Negocios
-- @devops (Flux) - Engenheiro DevOps
-- @data-engineer (Schema) - Engenheira de Dados
-- @ux-design-expert (Vista) - Design UX/UI
-- @squad-creator (Nexus) - Criador de Squads
+- @sm (River) - Scrum Master
+- @pm (Morgan) - Product Manager
+- @po (Pax) - Product Owner
+- @qa (Quinn) - Garantia de Qualidade
+- @analyst (Atlas) - Analista de Negocios
+- @devops (Gage) - Engenheiro DevOps
+- @data-engineer (Dara) - Engenheira de Dados
+- @ux-design-expert (Uma) - Design UX/UI
+- @squad-creator (Craft) - Criador de Squads
 - @cybersec (Kira) - Analista de Seguranca
