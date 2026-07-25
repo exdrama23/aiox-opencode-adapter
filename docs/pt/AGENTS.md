@@ -470,6 +470,8 @@ Craft vai:
 
 **Descricao:** Analista de Seguranca. Faz pentesting, escaneamento de vulnerabilidades, auditoria de seguranca e analise de ameacas.
 
+> **Documentacao Completa:** [Guia Completo do Kira](CYBERSEC.md)
+
 **Ferramentas MCP:**
 - hexstrike_* (100+ ferramentas de pentest)
 - pentest-mcp_* (ferramentas adicionais)

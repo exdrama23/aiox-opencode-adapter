@@ -95,6 +95,71 @@ function cmdInit() {
   log('  Tab                    # Switch between primary agents');
 }
 
+function parseAgentFrontmatter(content) {
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return null;
+
+  const yaml = match[1];
+  const result = {};
+
+  const descMatch = yaml.match(/description:\s*"(.+?)"/);
+  if (descMatch) result.description = descMatch[1];
+
+  const modeMatch = yaml.match(/mode:\s*(\w+)/);
+  if (modeMatch) result.mode = modeMatch[1];
+
+  const colorMatch = yaml.match(/color:\s*"(.+?)"/);
+  if (colorMatch) result.color = colorMatch[1];
+
+  const permBlock = yaml.match(/permission:\n([\s\S]*?)(?=\n\w|\n---$)/);
+  if (permBlock) {
+    const permYaml = permBlock[1];
+    const permission = {};
+
+    const editMatch = permYaml.match(/edit:\s*(\w+)/);
+    if (editMatch) permission.edit = editMatch[1];
+
+    const readMatch = permYaml.match(/read:\s*(\w+)/);
+    if (readMatch) permission.read = readMatch[1];
+
+    const globMatch = permYaml.match(/glob:\s*(\w+)/);
+    if (globMatch) permission.glob = globMatch[1];
+
+    const grepMatch = permYaml.match(/grep:\s*(\w+)/);
+    if (grepMatch) permission.grep = grepMatch[1];
+
+    const skillMatch = permYaml.match(/skill:\s*(\w+)/);
+    if (skillMatch) permission.skill = skillMatch[1];
+
+    const webfetchMatch = permYaml.match(/webfetch:\s*(\w+)/);
+    if (webfetchMatch) permission.webfetch = webfetchMatch[1];
+
+    const websearchMatch = permYaml.match(/websearch:\s*(\w+)/);
+    if (websearchMatch) permission.websearch = websearchMatch[1];
+
+    const bashBlock = permYaml.match(/bash:\n([\s\S]*?)(?=\n    \w|$)/);
+    if (bashBlock) {
+      const bash = {};
+      const lines = bashBlock[1].split('\n');
+      for (const line of lines) {
+        const kv = line.match(/\s+"(.+?)":\s*"(.+?)"/);
+        if (kv) bash[kv[1]] = kv[2];
+      }
+      if (Object.keys(bash).length > 0) permission.bash = bash;
+    }
+
+    const hexstrikeMatch = permYaml.match(/hexstrike_\*:\s*(\w+)/);
+    if (hexstrikeMatch) permission['hexstrike_*'] = hexstrikeMatch[1];
+
+    const pentestMatch = permYaml.match(/pentest-mcp_\*:\s*(\w+)/);
+    if (pentestMatch) permission['pentest-mcp_*'] = pentestMatch[1];
+
+    if (Object.keys(permission).length > 0) result.permission = permission;
+  }
+
+  return result;
+}
+
 function cmdConfig() {
   log('Generating OpenCode config...\n');
 
@@ -105,6 +170,35 @@ function cmdConfig() {
   }
 
   let config = JSON.parse(fs.readFileSync(templatePath, 'utf8'));
+
+  if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
+    const installedAgents = fs.readdirSync(OPENCODE_AGENTS_DIR).filter(f => f.endsWith('.md'));
+    const templateAgents = Object.keys(config.agent || {});
+    let added = 0;
+
+    for (const file of installedAgents) {
+      const agentName = file.replace('.md', '');
+      if (config.agent && config.agent[agentName]) continue;
+
+      const content = fs.readFileSync(path.join(OPENCODE_AGENTS_DIR, file), 'utf8');
+      const parsed = parseAgentFrontmatter(content);
+      if (parsed && parsed.description) {
+        if (!config.agent) config.agent = {};
+        config.agent[agentName] = {
+          description: parsed.description,
+          mode: parsed.mode || 'subagent',
+          color: parsed.color || '#607D8B',
+        };
+        if (parsed.permission) config.agent[agentName].permission = parsed.permission;
+        added++;
+        ok(`Added agent: @${agentName} (${parsed.mode || 'subagent'})`);
+      }
+    }
+
+    if (added > 0) {
+      log(`Registered ${added} additional agents from installed files.`);
+    }
+  }
 
   const hexstrikePaths = [
     path.join(os.homedir(), 'hexstrike-ai', 'hexstrike_mcp.py'),

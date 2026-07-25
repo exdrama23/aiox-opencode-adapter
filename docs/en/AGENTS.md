@@ -470,6 +470,8 @@ Craft will:
 
 **Description:** Security Analyst. Does pentesting, vulnerability scanning, security auditing, and threat analysis.
 
+> **Complete Documentation:** [Complete Kira Guide](CYBERSEC.md)
+
 **MCP Tools:**
 - hexstrike_* (100+ pentesting tools)
 - pentest-mcp_* (additional tools)
