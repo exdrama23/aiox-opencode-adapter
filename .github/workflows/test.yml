@@ -54,7 +54,7 @@ jobs:
         run: |
           AGENT_COUNT=$(ls agents/*.md | wc -l)
           echo "Agent count: $AGENT_COUNT"
-          if [ "$AGENT_COUNT" -ne 12 ]; then
-            echo "Error: Expected 12 agents, found $AGENT_COUNT"
+          if [ "$AGENT_COUNT" -ne 13 ]; then
+            echo "Error: Expected 13 agents, found $AGENT_COUNT"
             exit 1
           fi
