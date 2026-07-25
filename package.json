@@ -1,6 +1,6 @@
 {
   "name": "aiox-opencode-adapter",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "AIOX Agents for OpenCode - Use AIOX agents globally in any project. Based on AIOX Framework by SynkraAI.",
   "main": "bin/aiox-global.js",
   "bin": {
