@@ -85,6 +85,7 @@ See full documentation:
 - [HexStrike Setup](docs/en/HEXSTRIKE-SETUP.md)
 - [MCP Guide](docs/en/MCP-GUIDE.md)
 - [Agent Descriptions](docs/en/AGENTS.md)
+- [Cybersec Guide (Kira)](docs/en/CYBERSEC.md)
 - [Troubleshooting](docs/en/TROUBLESHOOTING.md)
 
 ## Usage
