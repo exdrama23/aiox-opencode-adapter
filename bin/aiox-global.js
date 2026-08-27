@@ -4,8 +4,17 @@ const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
 
+const {
+  convertV1ToV2,
+  convertV2ToV1,
+  resolveOpencodeDir,
+  parsePermissionObject,
+  parsePermissionsArray,
+  dedupPermissionsArray,
+} = require('../lib/opencodeCompat');
+
 const AGENTS_DIR = path.join(__dirname, '..', 'agents');
-const OPENCODE_DIR = path.join(os.homedir(), '.config', 'opencode');
+const OPENCODE_DIR = resolveOpencodeDir();
 const OPENCODE_AGENTS_DIR = path.join(OPENCODE_DIR, 'agents');
 const OPENCODE_CONFIG = path.join(OPENCODE_DIR, 'opencode.json');
 const OPENCODE_SKILLS_DIR = path.join(OPENCODE_DIR, 'skills');
@@ -95,8 +104,8 @@ function cmdInit() {
   log('  Tab                    # Switch between primary agents');
 }
 
-function parseAgentFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
+function parseAgentFrontmatterV2(content) {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return null;
 
   const yaml = match[1];
@@ -111,53 +120,182 @@ function parseAgentFrontmatter(content) {
   const colorMatch = yaml.match(/color:\s*"(.+?)"/);
   if (colorMatch) result.color = colorMatch[1];
 
-  const permBlock = yaml.match(/permission:\n([\s\S]*?)(?=\n\w|\n---$)/);
-  if (permBlock) {
-    const permYaml = permBlock[1];
-    const permission = {};
-
-    const editMatch = permYaml.match(/edit:\s*(\w+)/);
-    if (editMatch) permission.edit = editMatch[1];
-
-    const readMatch = permYaml.match(/read:\s*(\w+)/);
-    if (readMatch) permission.read = readMatch[1];
-
-    const globMatch = permYaml.match(/glob:\s*(\w+)/);
-    if (globMatch) permission.glob = globMatch[1];
-
-    const grepMatch = permYaml.match(/grep:\s*(\w+)/);
-    if (grepMatch) permission.grep = grepMatch[1];
-
-    const skillMatch = permYaml.match(/skill:\s*(\w+)/);
-    if (skillMatch) permission.skill = skillMatch[1];
-
-    const webfetchMatch = permYaml.match(/webfetch:\s*(\w+)/);
-    if (webfetchMatch) permission.webfetch = webfetchMatch[1];
-
-    const websearchMatch = permYaml.match(/websearch:\s*(\w+)/);
-    if (websearchMatch) permission.websearch = websearchMatch[1];
-
-    const bashBlock = permYaml.match(/bash:\n([\s\S]*?)(?=\n    \w|$)/);
-    if (bashBlock) {
-      const bash = {};
-      const lines = bashBlock[1].split('\n');
-      for (const line of lines) {
-        const kv = line.match(/\s+"(.+?)":\s*"(.+?)"/);
-        if (kv) bash[kv[1]] = kv[2];
-      }
-      if (Object.keys(bash).length > 0) permission.bash = bash;
-    }
-
-    const hexstrikeMatch = permYaml.match(/hexstrike_\*:\s*(\w+)/);
-    if (hexstrikeMatch) permission['hexstrike_*'] = hexstrikeMatch[1];
-
-    const pentestMatch = permYaml.match(/pentest-mcp_\*:\s*(\w+)/);
-    if (pentestMatch) permission['pentest-mcp_*'] = pentestMatch[1];
-
-    if (Object.keys(permission).length > 0) result.permission = permission;
+  // Handle prompt / system aliases (V1: prompt, V2: system)
+  const promptMatch = yaml.match(/^\s*prompt:\s*"?(.*?)"?\s*$/m);
+  const systemMatch = yaml.match(/^\s*system:\s*"?(.*?)"?\s*$/m);
+  // Need more robust multiline? but handle simple
+  // Use alternative that captures without quotes and with \r?
+  const promptAlt = yaml.match(/prompt:\s*"(.+?)"/);
+  const systemAlt = yaml.match(/system:\s*"(.+?)"/);
+  let promptVal = null;
+  let systemVal = null;
+  if (promptMatch) promptVal = promptMatch[1].replace(/^"|"$/g, '').trim();
+  if (promptAlt && !promptVal) promptVal = promptAlt[1];
+  if (systemMatch) systemVal = systemMatch[1].replace(/^"|"$/g, '').trim();
+  if (systemAlt && !systemVal) systemVal = systemAlt[1];
+  if (promptVal || systemVal) {
+    // Cross-normalization: if only one exists, mirror to other
+    const finalPrompt = promptVal || systemVal;
+    const finalSystem = systemVal || promptVal;
+    result.prompt = finalPrompt;
+    result.system = finalSystem;
   }
 
+  // Handle disable / disabled aliases (V1: disable, V2: disabled)
+  const disableMatch = yaml.match(/^\s*disable:\s*(\w+)/m);
+  const disabledMatch = yaml.match(/^\s*disabled:\s*(\w+)/m);
+  let disableVal = null;
+  let disabledVal = null;
+  if (disableMatch) disableVal = disableMatch[1].trim();
+  if (disabledMatch) disabledVal = disabledMatch[1].trim();
+  if (disableVal !== null || disabledVal !== null) {
+    // Normalize to boolean string? Keep as boolean if true/false
+    const normalize = (v) => {
+      if (v === 'true') return true;
+      if (v === 'false') return false;
+      return v;
+    };
+    const finalDisable = disableVal !== null ? normalize(disableVal) : normalize(disabledVal);
+    const finalDisabled = disabledVal !== null ? normalize(disabledVal) : normalize(disableVal);
+    // V2 wins if both exist: final values already captured separately, but if both exist keep each own value
+    if (disableVal !== null && disabledVal !== null) {
+      result.disable = normalize(disableVal);
+      result.disabled = normalize(disabledVal);
+    } else {
+      result.disable = finalDisable;
+      result.disabled = finalDisabled;
+    }
+  }
+
+  // Parse permissions: V1 (permission:) and V2 (permissions:)
+  let permV1 = parsePermissionObject(yaml);
+  let permsV2 = parsePermissionsArray(yaml);
+
+  // Handle alias inside V1 object already normalized in parsePermissionObject (shell->bash, subagent->task)
+  // But also need to handle case where yaml uses V2 naming inside permission block (defensive)
+  
+  // Cross-normalization: if only V1 exists, generate V2; if only V2, generate V1; if both, V2 wins but validate
+  if (permV1 && !permsV2) {
+    permsV2 = convertV1ToV2(permV1);
+  } else if (!permV1 && permsV2) {
+    permV1 = convertV2ToV1(permsV2);
+  } else if (permV1 && permsV2) {
+    // Both exist: V2 wins, but we keep V1 as is for compat; optionally validate consistency
+    // If they diverge significantly, we could warn, but not error. For now just ensure dedup
+    permsV2 = dedupPermissionsArray(permsV2);
+    // Validate consistency: compute expected V2 from V1 and compare size?
+    // Not throwing, just keeping V2 as source of truth
+    const expectedV2 = convertV1ToV2(permV1);
+    if (expectedV2.length !== permsV2.length) {
+      // divergence - keep V2 but could log? avoid noise in parser
+    }
+    // Also ensure permV1 has aliases normalized
+    // If permsV2 and permV1 diverge, V2 is truth, permV1 stays as parsed
+  }
+
+  if (permV1) result.permission = permV1;
+  if (permsV2) result.permissions = permsV2;
+
+  // Also handle case where permission object had shell/subagent keys directly parsed as V2 naming inside yaml but already handled
+  // Ensure result has both for downstream dual-write
+
   return result;
+}
+
+// Backward-compatible wrapper
+function parseAgentFrontmatter(content) {
+  return parseAgentFrontmatterV2(content);
+}
+
+function ensureDualPermissions(config) {
+  // Ensure top-level agent/agents mirrored
+  if (config.agent && !config.agents) {
+    config.agents = structuredClone(config.agent);
+  } else if (!config.agent && config.agents) {
+    config.agent = structuredClone(config.agents);
+  } else if (config.agent && config.agents) {
+    // Both exist -> ensure they are synchronized, V2 (agents) wins if divergence?
+    // Merge: ensure both contain union of keys, with agents as source
+    const merged = {};
+    const allKeys = new Set([...Object.keys(config.agent), ...Object.keys(config.agents)]);
+    for (const k of allKeys) {
+      // Prefer agents (V2) if exists
+      merged[k] = structuredClone(config.agents[k] || config.agent[k]);
+    }
+    config.agent = structuredClone(merged);
+    config.agents = structuredClone(merged);
+  }
+
+  // Ensure global permission / permissions dual
+  const hasPerm = !!config.permission;
+  const hasPerms = !!config.permissions;
+  if (hasPerm && !hasPerms) {
+    config.permissions = convertV1ToV2(config.permission);
+  } else if (!hasPerm && hasPerms) {
+    config.permission = convertV2ToV1(config.permissions);
+  } else if (hasPerm && hasPerms) {
+    config.permissions = dedupPermissionsArray(config.permissions);
+    // V2 wins, keep both as is
+  } else if (!hasPerm && !hasPerms) {
+    // No global permission defined, keep as is (maybe default)
+  }
+
+  // Ensure each agent has both permission and permissions
+  const agentCollections = [];
+  if (config.agent) agentCollections.push(config.agent);
+  if (config.agents) agentCollections.push(config.agents);
+
+  // Collect all unique agent names
+  const allAgentNames = new Set();
+  if (config.agent) Object.keys(config.agent).forEach(k => allAgentNames.add(k));
+  if (config.agents) Object.keys(config.agents).forEach(k => allAgentNames.add(k));
+
+  for (const name of allAgentNames) {
+    // Get agent objects (may be in one collection only)
+    let agentV1Obj = config.agent ? config.agent[name] : null;
+    let agentV2Obj = config.agents ? config.agents[name] : null;
+    // Merge to single source - prefer V2
+    let source = agentV2Obj || agentV1Obj;
+    if (!source) continue;
+    let perm = source.permission;
+    let perms = source.permissions;
+
+    // Normalize alias within permission if needed (shell->bash)
+    if (perm) {
+      if (perm.shell && !perm.bash) {
+        perm.bash = perm.shell;
+        delete perm.shell;
+      }
+      if (perm.subagent && !perm.task) {
+        perm.task = perm.subagent;
+        delete perm.subagent;
+      }
+    }
+
+    if (perm && !perms) {
+      perms = convertV1ToV2(perm);
+    } else if (!perm && perms) {
+      perm = convertV2ToV1(perms);
+    } else if (perm && perms) {
+      perms = dedupPermissionsArray(perms);
+    } else {
+      // Neither, skip
+      continue;
+    }
+
+    // Ensure agent object has both
+    const updated = { ...source, permission: perm, permissions: perms };
+
+    if (config.agent) config.agent[name] = structuredClone(updated);
+    if (config.agents) config.agents[name] = structuredClone(updated);
+  }
+
+  // If only one collection existed initially, ensure the other mirrored
+  if (config.agent && !config.agents) {
+    config.agents = structuredClone(config.agent);
+  } else if (!config.agent && config.agents) {
+    config.agent = structuredClone(config.agents);
+  }
 }
 
 function cmdConfig() {
@@ -171,6 +309,9 @@ function cmdConfig() {
 
   let config = JSON.parse(fs.readFileSync(templatePath, 'utf8'));
 
+  // Dual-write normalization for template
+  ensureDualPermissions(config);
+
   if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
     const installedAgents = fs.readdirSync(OPENCODE_AGENTS_DIR).filter(f => f.endsWith('.md'));
     const templateAgents = Object.keys(config.agent || {});
@@ -181,15 +322,25 @@ function cmdConfig() {
       if (config.agent && config.agent[agentName]) continue;
 
       const content = fs.readFileSync(path.join(OPENCODE_AGENTS_DIR, file), 'utf8');
-      const parsed = parseAgentFrontmatter(content);
+      const parsed = parseAgentFrontmatterV2(content);
       if (parsed && parsed.description) {
         if (!config.agent) config.agent = {};
-        config.agent[agentName] = {
+        if (!config.agents) config.agents = {};
+        const agentEntry = {
           description: parsed.description,
           mode: parsed.mode || 'subagent',
           color: parsed.color || '#607D8B',
         };
-        if (parsed.permission) config.agent[agentName].permission = parsed.permission;
+        if (parsed.permission) agentEntry.permission = parsed.permission;
+        if (parsed.permissions) agentEntry.permissions = parsed.permissions;
+        // Ensure dual within agent entry
+        if (agentEntry.permission && !agentEntry.permissions) {
+          agentEntry.permissions = convertV1ToV2(agentEntry.permission);
+        } else if (!agentEntry.permission && agentEntry.permissions) {
+          agentEntry.permission = convertV2ToV1(agentEntry.permissions);
+        }
+        config.agent[agentName] = structuredClone(agentEntry);
+        config.agents[agentName] = structuredClone(agentEntry);
         added++;
         ok(`Added agent: @${agentName} (${parsed.mode || 'subagent'})`);
       }
@@ -199,6 +350,9 @@ function cmdConfig() {
       log(`Registered ${added} additional agents from installed files.`);
     }
   }
+
+  // Ensure again dual after adding agents
+  ensureDualPermissions(config);
 
   const hexstrikePaths = [
     path.join(os.homedir(), 'hexstrike-ai', 'hexstrike_mcp.py'),
@@ -390,12 +544,32 @@ function cmdDoctor() {
     ok(`Node.js ${nodeVer}`);
   } catch { fail('Node.js not found'); }
 
+  ok(`Config directory: ${OPENCODE_DIR}`);
+
   if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
-    ok(`Config directory: ${OPENCODE_AGENTS_DIR}`);
+    ok(`Agents directory: ${OPENCODE_AGENTS_DIR}`);
   } else {
     fail(`Config directory not found: ${OPENCODE_AGENTS_DIR}`);
     log('Run "aiox-global init" to install.');
     return;
+  }
+
+  // Windows duplication alert
+  if (os.platform() === 'win32') {
+    const appDataDir = process.env.APPDATA ? path.join(process.env.APPDATA, 'opencode') : null;
+    const homeConfigDir = path.join(os.homedir(), '.config', 'opencode');
+    const localAppDataDir = process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'opencode') : null;
+    const candidates = [appDataDir, homeConfigDir, localAppDataDir].filter(Boolean);
+    const existing = candidates.filter(p => {
+      try { return fs.existsSync(p); } catch { return false; }
+    });
+    // Alert if APPDATA and home config both exist and are different
+    if (appDataDir && fs.existsSync(appDataDir) && fs.existsSync(homeConfigDir) && path.resolve(appDataDir) !== path.resolve(homeConfigDir)) {
+      warn(`Duplicate config directories detected: ${appDataDir} and ${homeConfigDir} both exist. This may cause confusion. Consider consolidating.`);
+    }
+    if (existing.length > 1) {
+      info(`Config candidates found: ${existing.join(', ')} (using ${OPENCODE_DIR})`);
+    }
   }
 
   const files = fs.readdirSync(OPENCODE_AGENTS_DIR).filter(f => f.endsWith('.md'));
@@ -445,7 +619,7 @@ function cmdDoctor() {
     warn('Pentest MCP not installed. Run "aiox-global setup-pentest"');
   }
 
-  console.log(`\nTotal agents in ~/.config/opencode/agents/: ${files.length}`);
+  console.log(`\nTotal agents in ${OPENCODE_DIR}/agents/: ${files.length}`);
 }
 
 function cmdUpdate() {
@@ -666,7 +840,7 @@ function cmdUninstall() {
   });
 
   log(`\nRemoved ${removed}/${AGENTS.length} agents.`);
-  log('Note: Other custom agents in ~/.config/opencode/agents/ were not touched.');
+  log(`Note: Other custom agents in ${OPENCODE_DIR}/agents/ were not touched.`);
 }
 
 const args = process.argv.slice(2);
@@ -726,27 +900,27 @@ switch (cmd) {
   case undefined:
     const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
     console.log(`
-${pkg.name} v${pkg.version}
-${pkg.description}
+ ${pkg.name} v${pkg.version}
+ ${pkg.description}
 
-Based on AIOX Framework by SynkraAI (MIT License)
-https://github.com/SynkraAI/aiox-core
+ Based on AIOX Framework by SynkraAI (MIT License)
+ https://github.com/SynkraAI/aiox-core
 
-Commands:
-  aiox-global auto-setup      Full automatic setup (recommended)
-  aiox-global init            Install agents globally for OpenCode
-  aiox-global config          Generate opencode.json with auto-detected MCPs
-  aiox-global setup-hexstrike Install HexStrike AI pentesting MCP
-  aiox-global setup-pentest   Install Pentest MCP (Docker)
-  aiox-global list            List installed agents
-  aiox-global update          Update to latest version
-  aiox-global customize       Customize an agent (creates local copy)
-  aiox-global preset          Apply a preset (dev, pentest, fullstack, agile, minimal)
-  aiox-global doctor          Check installation health
-  aiox-global uninstall       Remove AIOX agents
-  aiox-global help            Show this help
-  aiox-global --version       Show version
-`);
+ Commands:
+   aiox-global auto-setup      Full automatic setup (recommended)
+   aiox-global init            Install agents globally for OpenCode
+   aiox-global config          Generate opencode.json with auto-detected MCPs
+   aiox-global setup-hexstrike Install HexStrike AI pentesting MCP
+   aiox-global setup-pentest   Install Pentest MCP (Docker)
+   aiox-global list            List installed agents
+   aiox-global update          Update to latest version
+   aiox-global customize       Customize an agent (creates local copy)
+   aiox-global preset          Apply a preset (dev, pentest, fullstack, agile, minimal)
+   aiox-global doctor          Check installation health
+   aiox-global uninstall       Remove AIOX agents
+   aiox-global help            Show this help
+   aiox-global --version       Show version
+ `);
     break;
   default:
     console.error(`Unknown command: ${cmd}. Run "aiox-global help" for usage.`);

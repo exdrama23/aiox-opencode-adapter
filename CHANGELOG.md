@@ -5,6 +5,29 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.4.0] - 2026-08-27
+
+### Adicionado
+- Compatibilidade DUAL OpenCode V1 (1.18.23) + V2 beta sem breaking change — `templates/opencode.json` agora gera `agent` + `agents` e `permission` + `permissions` simultaneamente
+- Novo modulo `lib/opencodeCompat.js` com `convertV1ToV2`, `convertV2ToV1`, `resolveOpencodeDir` e parsers bidirecionais (`bash`↔`shell`, `task`↔`subagent`, `write`/`patch`→`edit`)
+- `bin/aiox-global.js`: `parseAgentFrontmatter` agora lê tanto `permission:` quanto `permissions:` e normaliza automaticamente; `cmdConfig` com dual-write idempotente (deduplicação por `action:resource`)
+- `bin/aiox-global.js`: `resolveOpencodeDir()` com suporte Windows Desktop (`%APPDATA%\opencode` > `~/.config/opencode` > `%LOCALAPPDATA%\opencode`) e `OPENCODE_CONFIG_DIR` / `XDG_CONFIG_HOME`
+- `cmdDoctor` agora mostra `Config directory` resolvido dinamicamente e alerta de duplicação no Windows
+
+### Melhorado
+- `templates/opencode.json`: `aiox-master` com 13 `permissions` V2 + `cybersec` com 149 `permissions` V2 espelhadas (170+ regras bash convertidas para shell)
+- `scripts/validate-agents.js`: validação dual V1/V2, aceita ambos os formatos, warn se divergem (sem error)
+- Retrocompatibilidade total: `agents/*.md` legados continuam válidos sem edição; geração funciona em OpenCode 1.17, 1.18.23 e 2.0 beta sem warnings
+
+### Corrigido
+- Template não mais gera entradas fantasmas (ferramentas `*2` removidas)
+- Parser de frontmatter agora suporta `\r\n` (Windows) e aliases `shell`/`subagent`/`system`/`disabled`
+
+## [1.3.0] - 2026-08-15
+
+### Adicionado
+- Branch `atualizacao` para compatibilidade OpenCode 1.18.23 + Desktop Windows
+
 ## [1.2.0] - 2026-07-23
 
 ### Adicionado

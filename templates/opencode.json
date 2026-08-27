@@ -1,8 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-
   "default_agent": "aiox-master",
-
   "agent": {
     "aiox-master": {
       "description": "Orion - AIOX Master Orchestrator. Orchestrates multi-agent workflows. Use @agent-name to invoke specialized agents.",
@@ -21,10 +19,79 @@
         "glob": "allow",
         "grep": "allow",
         "skill": "allow",
-        "task": { "*": "allow" },
+        "task": {
+          "*": "allow"
+        },
         "webfetch": "allow",
         "websearch": "allow"
-      }
+      },
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "shell",
+          "resource": "git status*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npm run*",
+          "effect": "allow"
+        },
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "glob",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "grep",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "subagent",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
     },
     "cybersec": {
       "description": "Kira - Cybersecurity Analyst. Pentesting, vulnerability scanning, security audit, threat analysis.",
@@ -168,7 +235,6 @@
           "ldd *": "allow",
           "strace *": "allow",
           "ltrace *": "allow",
-          "tcpdump *": "allow",
           "ngrep *": "allow",
           "hping3 *": "allow",
           "nping *": "allow",
@@ -183,14 +249,1759 @@
         "skill": "allow",
         "webfetch": "allow",
         "websearch": "allow"
-      }
+      },
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "shell",
+          "resource": "nmap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nuclei *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "subfinder *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gau *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "httpx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "katana *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ffuf *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "whatweb *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wafw00f *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nikto *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sqlmap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dalfox *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "commix *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git status*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "grep *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "msfconsole *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "msfvenom *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "hydra *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "medusa *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gdb *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "socat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ssh *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "proxychains *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "tor *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "burpsuite *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "zap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "whois *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dig *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "host *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "enum4linux *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "smbclient *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rpcclient *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wpscan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "droopescan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cmseek *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dirb *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dirsearch *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gobuster *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wfuzz *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "arjun *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "paramspider *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "waybackurls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "waybackurls",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "amass *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "masscan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rustscan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "zmap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "masscan",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rustscan",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "searchsploit *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "searchsploit",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ropper *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "one_gadget *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "theharvester *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "recon-ng *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "shodan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "censys *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dnsrecon *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "fierce *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dnsenum *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sublist3r *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "tcpdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "tshark *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bettercap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "mitmproxy *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "mitmdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "responder *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ntlmrelayx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "chisel *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ligolo-ng *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "evil-winrm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "impacket-*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "secretsdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "psexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wmiexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "smbexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "atexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dcomexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bloodhound-python *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ldapdomaindump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kerbrute *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pacu *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "scout-suite *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "prowler *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "roadtools *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "trivy *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kube-hunter *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "linpeas *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "linenum *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "linux-exploit-suggester *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "winpeas *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "powerup *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "jaws *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sherlock *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "jwt_tool *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kiterunner *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gopherus *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sstimap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "veil *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "shellter *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "unicorn *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pwntools *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rps *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pwd",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "id",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "whoami",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "uname *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ifconfig *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ip *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "netstat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ss *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ps *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "top *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "find *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "locate *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "which *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "file *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "strings *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "xxd *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "hexdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "od *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "readelf *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "objdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ldd *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "strace *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ltrace *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ngrep *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "hping3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nping *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "arp *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "arping *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ndisc6 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "radvdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "glob",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "grep",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
     }
   },
-
+  "agents": {
+    "aiox-master": {
+      "description": "Orion - AIOX Master Orchestrator. Orchestrates multi-agent workflows. Use @agent-name to invoke specialized agents.",
+      "mode": "primary",
+      "color": "#9C27B0",
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git log*": "allow",
+          "node *": "allow",
+          "npm run*": "allow"
+        },
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "skill": "allow",
+        "task": {
+          "*": "allow"
+        },
+        "webfetch": "allow",
+        "websearch": "allow"
+      },
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "shell",
+          "resource": "git status*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npm run*",
+          "effect": "allow"
+        },
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "glob",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "grep",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "subagent",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "cybersec": {
+      "description": "Kira - Cybersecurity Analyst. Pentesting, vulnerability scanning, security audit, threat analysis.",
+      "mode": "primary",
+      "color": "#ff0000",
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "*": "ask",
+          "nmap *": "allow",
+          "nuclei *": "allow",
+          "subfinder *": "allow",
+          "gau *": "allow",
+          "httpx *": "allow",
+          "katana *": "allow",
+          "ffuf *": "allow",
+          "whatweb *": "allow",
+          "wafw00f *": "allow",
+          "nikto *": "allow",
+          "sqlmap *": "allow",
+          "dalfox *": "allow",
+          "commix *": "allow",
+          "git status*": "allow",
+          "git log*": "allow",
+          "grep *": "allow",
+          "curl *": "allow",
+          "msfconsole *": "allow",
+          "msfvenom *": "allow",
+          "hydra *": "allow",
+          "medusa *": "allow",
+          "gdb *": "allow",
+          "python3 *": "allow",
+          "python *": "allow",
+          "socat *": "allow",
+          "ssh *": "allow",
+          "proxychains *": "allow",
+          "tor *": "allow",
+          "burpsuite *": "allow",
+          "zap *": "allow",
+          "docker *": "allow",
+          "whois *": "allow",
+          "dig *": "allow",
+          "host *": "allow",
+          "enum4linux *": "allow",
+          "smbclient *": "allow",
+          "rpcclient *": "allow",
+          "wpscan *": "allow",
+          "droopescan *": "allow",
+          "cmseek *": "allow",
+          "dirb *": "allow",
+          "dirsearch *": "allow",
+          "gobuster *": "allow",
+          "wfuzz *": "allow",
+          "arjun *": "allow",
+          "paramspider *": "allow",
+          "waybackurls *": "allow",
+          "waybackurls": "allow",
+          "amass *": "allow",
+          "masscan *": "allow",
+          "rustscan *": "allow",
+          "zmap *": "allow",
+          "masscan": "allow",
+          "rustscan": "allow",
+          "searchsploit *": "allow",
+          "searchsploit": "allow",
+          "ropper *": "allow",
+          "one_gadget *": "allow",
+          "theharvester *": "allow",
+          "recon-ng *": "allow",
+          "shodan *": "allow",
+          "censys *": "allow",
+          "dnsrecon *": "allow",
+          "fierce *": "allow",
+          "dnsenum *": "allow",
+          "sublist3r *": "allow",
+          "tcpdump *": "allow",
+          "tshark *": "allow",
+          "bettercap *": "allow",
+          "mitmproxy *": "allow",
+          "mitmdump *": "allow",
+          "responder *": "allow",
+          "ntlmrelayx *": "allow",
+          "chisel *": "allow",
+          "ligolo-ng *": "allow",
+          "evil-winrm *": "allow",
+          "impacket-*": "allow",
+          "secretsdump *": "allow",
+          "psexec *": "allow",
+          "wmiexec *": "allow",
+          "smbexec *": "allow",
+          "atexec *": "allow",
+          "dcomexec *": "allow",
+          "bloodhound-python *": "allow",
+          "ldapdomaindump *": "allow",
+          "kerbrute *": "allow",
+          "pacu *": "allow",
+          "scout-suite *": "allow",
+          "prowler *": "allow",
+          "roadtools *": "allow",
+          "trivy *": "allow",
+          "kube-hunter *": "allow",
+          "linpeas *": "allow",
+          "linenum *": "allow",
+          "linux-exploit-suggester *": "allow",
+          "winpeas *": "allow",
+          "powerup *": "allow",
+          "jaws *": "allow",
+          "sherlock *": "allow",
+          "jwt_tool *": "allow",
+          "kiterunner *": "allow",
+          "gopherus *": "allow",
+          "sstimap *": "allow",
+          "veil *": "allow",
+          "shellter *": "allow",
+          "unicorn *": "allow",
+          "pwntools *": "allow",
+          "rps *": "allow",
+          "cat *": "allow",
+          "ls *": "allow",
+          "pwd": "allow",
+          "id": "allow",
+          "whoami": "allow",
+          "uname *": "allow",
+          "ifconfig *": "allow",
+          "ip *": "allow",
+          "netstat *": "allow",
+          "ss *": "allow",
+          "ps *": "allow",
+          "top *": "allow",
+          "find *": "allow",
+          "locate *": "allow",
+          "which *": "allow",
+          "file *": "allow",
+          "strings *": "allow",
+          "xxd *": "allow",
+          "hexdump *": "allow",
+          "od *": "allow",
+          "readelf *": "allow",
+          "objdump *": "allow",
+          "nm *": "allow",
+          "ldd *": "allow",
+          "strace *": "allow",
+          "ltrace *": "allow",
+          "ngrep *": "allow",
+          "hping3 *": "allow",
+          "nping *": "allow",
+          "arp *": "allow",
+          "arping *": "allow",
+          "ndisc6 *": "allow",
+          "radvdump *": "allow"
+        },
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "skill": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      },
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "shell",
+          "resource": "nmap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nuclei *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "subfinder *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gau *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "httpx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "katana *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ffuf *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "whatweb *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wafw00f *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nikto *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sqlmap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dalfox *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "commix *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git status*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "grep *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "msfconsole *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "msfvenom *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "hydra *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "medusa *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gdb *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "socat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ssh *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "proxychains *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "tor *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "burpsuite *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "zap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "whois *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dig *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "host *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "enum4linux *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "smbclient *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rpcclient *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wpscan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "droopescan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cmseek *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dirb *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dirsearch *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gobuster *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wfuzz *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "arjun *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "paramspider *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "waybackurls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "waybackurls",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "amass *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "masscan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rustscan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "zmap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "masscan",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rustscan",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "searchsploit *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "searchsploit",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ropper *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "one_gadget *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "theharvester *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "recon-ng *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "shodan *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "censys *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dnsrecon *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "fierce *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dnsenum *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sublist3r *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "tcpdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "tshark *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bettercap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "mitmproxy *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "mitmdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "responder *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ntlmrelayx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "chisel *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ligolo-ng *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "evil-winrm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "impacket-*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "secretsdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "psexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "wmiexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "smbexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "atexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "dcomexec *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bloodhound-python *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ldapdomaindump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kerbrute *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pacu *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "scout-suite *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "prowler *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "roadtools *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "trivy *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kube-hunter *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "linpeas *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "linenum *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "linux-exploit-suggester *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "winpeas *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "powerup *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "jaws *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sherlock *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "jwt_tool *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kiterunner *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gopherus *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "sstimap *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "veil *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "shellter *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "unicorn *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pwntools *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "rps *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pwd",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "id",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "whoami",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "uname *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ifconfig *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ip *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "netstat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ss *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ps *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "top *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "find *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "locate *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "which *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "file *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "strings *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "xxd *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "hexdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "od *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "readelf *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "objdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ldd *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "strace *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ltrace *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ngrep *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "hping3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "nping *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "arp *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "arping *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ndisc6 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "radvdump *",
+          "effect": "allow"
+        },
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "glob",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "grep",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    }
+  },
   "mcp": {},
-
   "permission": {
-    "bash": { "*": "allow" },
+    "bash": {
+      "*": "allow"
+    },
     "edit": "allow",
     "read": "allow",
     "write": "allow",
@@ -198,5 +2009,42 @@
     "grep": "allow",
     "webfetch": "allow",
     "websearch": "allow"
-  }
+  },
+  "permissions": [
+    {
+      "action": "shell",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "edit",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "read",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "glob",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "grep",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "webfetch",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "websearch",
+      "resource": "*",
+      "effect": "allow"
+    }
+  ]
 }
