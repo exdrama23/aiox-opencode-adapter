@@ -1,6 +1,1 @@
-{
-  "name": "aiox-update-plugin",
-  "version": "0.1.0-test",
-  "description": "Plugin de teste de posicao para AIOX update notifier",
-  "type": "module"
-}
+{"name":"aiox-update-plugin","version":"1.4.0","description":"AIOX update notifier for OpenCode","type":"module"}
