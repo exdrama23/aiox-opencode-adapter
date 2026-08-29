@@ -1,0 +1,6 @@
+{
+  "name": "aiox-update-plugin",
+  "version": "0.1.0-test",
+  "description": "Plugin de teste de posicao para AIOX update notifier",
+  "type": "module"
+}
