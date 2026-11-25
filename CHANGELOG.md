@@ -69,6 +69,19 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - O toast do notificador depende da API TUI do OpenCode 2 e só pode ser verificado com a interface aberta; falhas são capturadas e não derrubam a TUI.
 - `OPENCODE_CONFIG_DIR` é usado apenas pelo `aiox-global`; o OpenCode 2.4.1 resolve a config por `$HOME/.config/opencode` e ignora a variável. O `doctor` avisa quando ela está definida.
 
+## [1.4.1] - 2026-08-29
+
+### Adicionado
+- `plugins/aiox-update/` passa a ser distribuido no tarball: `index.js` (notificador de nova versao) e `package.json` com `"type": "module"`
+- `lib/opencodeCompat.js`: +96 linhas de helpers para lidar com os dois formatos de permissao (`action`/`resource`/`effect` e o objeto aninhado do V1)
+
+### Melhorado
+- `bin/aiox-global.js`: instalacao, config, doctor e uninstall passam a usar os helpers de `lib/opencodeCompat.js` em vez de conversao inline (404 linhas reescritas)
+- `templates/opencode.json`: reduzido de ~1855 para poucas linhas. As permissoes vivem nos proprios `agents/*.md` e o OpenCode as mescla no carregamento; manter copia no config criava duas fontes de verdade que divergiam
+
+### Corrigido
+- Permissoes no config deixavam de casar com os `.md` depois de uma edicao manual no agente
+
 ## [1.4.0] - 2026-08-27
 
 ### Adicionado
