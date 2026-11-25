@@ -1,5 +1,10 @@
 # AIOX OpenCode Adapter
 
+[![npm version](https://img.shields.io/npm/v/aiox-opencode-adapter.svg)](https://www.npmjs.com/package/aiox-opencode-adapter)
+[![npm downloads](https://img.shields.io/npm/dm/aiox-opencode-adapter.svg)](https://www.npmjs.com/package/aiox-opencode-adapter)
+[![license](https://img.shields.io/npm/l/aiox-opencode-adapter.svg)](LICENSE)
+[![node](https://img.shields.io/node/v/aiox-opencode-adapter.svg)](https://nodejs.org)
+
 **English** | [Portugues](README.md)
 
 Use [AIOX](https://github.com/SynkraAI/aiox-core) agents globally in [OpenCode](https://opencode.ai) across any project.
