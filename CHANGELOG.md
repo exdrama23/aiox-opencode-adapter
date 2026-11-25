@@ -5,6 +5,35 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.4.2] - 2026-11-25
+
+### Adicionado
+- Suporte nativo ao OpenCode 2.4.1: `mcp` convertido para o formato V2 `mcp.servers` (`disabled` + `timeout.catalog/execution`)
+- `lib/opencodeCompat.js`: `convertMcpV1ToV2`, `convertMcpV2ToV1`, `normalizeMcp`, `convertPluginV1ToV2`, `convertPluginV2ToV1`, `normalizePlugins`, `normalizeAgentV1/V2` e `dropRedundantAgentPermissions`
+- Plugin `aiox-update` portado para a API de plugins V2 (`{ id, setup }`) mantendo o entrypoint legado `server()` para OpenCode 1.18.29+
+- Parte TUI do plugin (`plugins/aiox-update/tui.js`) para exibir o toast de nova versao no OpenCode 2
+- `scripts/validate-agents.js`: deteccao de chaves YAML duplicadas (agentes com frontmatter invalido eram ignorados silenciosamente)
+- Testes de conversao V1/V2 para permissoes, MCP, plugins e agentes (`tests/opencodeCompat.test.js`)
+
+### Corrigido
+- **Pacote npm incompleto (bloqueador de release)**: `files` nao incluia `plugins/` nem `scripts/`, entao o tarball publicado vinha sem `plugins/aiox-update` e `aiox-global init` instalava os agentes mas pulava o notificador silenciosamente
+- **Testes destruiam a instalacao real**: `tests/cli.test.js` e `tests/integration.test.js` rodavam `init`, `uninstall`, `preset` e `config` contra o `~/.config/opencode` do usuario; como `prepublishOnly` executa `npm test`, publicar reescrevia a config do mantenedor. Agora cada arquivo de teste usa um HOME temporario (`tests/helpers/sandbox.js`)
+- `agents/cybersec.md`: chave YAML duplicada `"tcpdump *"` fazia o OpenCode 2 pular o agente com `agent file skipped`
+- Plugin `aiox-update` falhava no OpenCode 2 com `Plugin must export a default definition with an id and an effect or setup function`
+- Plugin passa a ser instalado como diretorio (`plugins/aiox-update/index.js` + `tui.js` + `package.json` + `version.json`), com migracao automatica do arquivo unico legado
+- `aiox-global config`: MCPs eram gravados no formato V1 dentro de `mcp.servers`; agora sao normalizados antes de escrever a config
+- `aiox-global doctor` e `uninstall` reconhecem o plugin novo e o formato `mcp.servers`
+- `agents/aiox-master.md` referenciava a ferramenta `task` (52 ocorrencias), inexistente no OpenCode 2 — o orquestrador podia tentar uma chamada invalida. Agora usa `subagent(agent, description, prompt)`
+- `agents/aiox-master.md`: prompt reduzido de ~13.3k para ~3.8k caracteres (~3.3k → ~830 tokens por requisicao), removendo 9 blocos de exemplo repetidos e mantendo roteamento, dependencias e paralelismo; adicionada secao de disciplina de tokens
+- Permissoes de agente duplicadas: o `.md` e a config declaravam as mesmas regras (43 entradas para `aiox-master`, 13 redundantes). As permissoes da config sao removidas para todo agente com `.md` instalado; OpenCode continua mesclando as do arquivo
+- Removido o campo invalido `version` do frontmatter dos 13 agentes
+- `.gitignore` passa a ignorar `*.tgz` (artefatos de `npm pack`)
+
+### Limites conhecidos
+- O notificador `aiox-update` é carregado como diretório (`plugins/aiox-update/`), formato do OpenCode 2. No OpenCode 1.x, que descobre apenas arquivos em `plugins/*.js`, ele não é carregado — os agentes e a config V1 continuam funcionando.
+- O toast do notificador depende da API TUI do OpenCode 2 e só pode ser verificado com a interface aberta; falhas são capturadas e não derrubam a TUI.
+- `OPENCODE_CONFIG_DIR` é usado apenas pelo `aiox-global`; o OpenCode 2.4.1 resolve a config por `$HOME/.config/opencode` e ignora a variável. O `doctor` avisa quando ela está definida.
+
 ## [1.4.0] - 2026-08-27
 
 ### Adicionado

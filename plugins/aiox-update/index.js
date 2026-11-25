@@ -1,135 +1,191 @@
 /**
- * AIOX Update Notifier - Plugin para OpenCode
- * Aparece abaixo de "LSPs are disabled" com: Nova versao disponivel!! + [Cancelar] [Atualizar]
- * Versao ultra-robusta: sem require, sem leitura fragil, mostra quando ha nova versao
+ * AIOX Update Notifier - plugin para OpenCode
+ *
+ * V2: exporta um objeto { id, setup } (novo contrato de plugins do OpenCode 2).
+ * V1: mantem o entrypoint legado `server()` para OpenCode 1.18.29+.
+ *
+ * A notificacao visual (toast) no V2 e feita pela parte TUI em ./tui.js.
  */
 
 import fs from "fs";
 import path from "path";
 import os from "os";
+import { fileURLToPath } from "url";
 
+const PLUGIN_DIR = path.dirname(fileURLToPath(import.meta.url));
 const CACHE_DIR = path.join(os.homedir(), ".aiox", "cache");
 const CACHE_FILE = path.join(CACHE_DIR, "update.json");
 const DEBUG_FILE = path.join(CACHE_DIR, "plugin-debug.log");
-const NOTICE_FILE = path.join(CACHE_DIR, "update-notice.txt");
+const DEBUG_MAX_BYTES = 256 * 1024;
+const REGISTRY_URL = "https://registry.npmjs.org/aiox-opencode-adapter/latest";
 
 function debug(msg) {
   try {
     if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+    if (fs.existsSync(DEBUG_FILE) && fs.statSync(DEBUG_FILE).size > DEBUG_MAX_BYTES) {
+      // Keep the log bounded: retain only the most recent ~32 KB.
+      const tail = fs.readFileSync(DEBUG_FILE).slice(-32 * 1024).toString("utf8");
+      fs.writeFileSync(DEBUG_FILE, tail.slice(tail.indexOf("\n") + 1));
+    }
     fs.appendFileSync(DEBUG_FILE, `${new Date().toISOString()} ${msg}\n`);
-    // Tambem escreve notice visivel para cat
-    fs.writeFileSync(NOTICE_FILE, `${new Date().toISOString()} ${msg}\n`, { flag: "a" });
   } catch {}
 }
 
-function getCurrentVersion() {
-  return "1.4.0";
+export function readInstalledVersion() {
+  const candidates = [
+    path.join(PLUGIN_DIR, "version.json"),
+    path.join(PLUGIN_DIR, "..", "..", "package.json"),
+  ];
+
+  for (const file of candidates) {
+    try {
+      if (!fs.existsSync(file)) continue;
+      const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
+      if (pkg && pkg.version) return String(pkg.version);
+    } catch (e) {
+      debug(`[readInstalledVersion] ${file} ${e?.message}`);
+    }
+  }
+
+  return "0.0.0";
 }
 
-function isNewer(latest, current) {
-  const p = (v) => String(v).replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
-  const l = p(latest), c = p(current);
-  for (let i = 0; i < 3; i++) if ((l[i]||0) > (c[i]||0)) return true; else if ((l[i]||0) < (c[i]||0)) return false;
+export function isNewer(latest, current) {
+  const parse = (v) =>
+    String(v)
+      .replace(/^v/, "")
+      .split(".")
+      .map((n) => parseInt(n, 10) || 0);
+
+  const l = parse(latest);
+  const c = parse(current);
+  for (let i = 0; i < 3; i++) {
+    if ((l[i] || 0) > (c[i] || 0)) return true;
+    if ((l[i] || 0) < (c[i] || 0)) return false;
+  }
   return false;
 }
 
-function readCache() {
+export function readCache() {
   try {
-    if (!fs.existsSync(CACHE_FILE)) {
-      debug(`[readCache] no file ${CACHE_FILE}`);
+    if (!fs.existsSync(CACHE_FILE)) return null;
+    const data = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
+    if (!data.latestVersion) return null;
+    const ttl = 24 * 60 * 60 * 1000;
+    if (typeof data.checkedAt === "number" && Date.now() - data.checkedAt > ttl) return null;
+    return data;
+  } catch (e) {
+    debug(`[readCache] ${e?.message}`);
+    return null;
+  }
+}
+
+export async function fetchLatestVersion(timeoutMs = 3000) {
+  try {
+    if (typeof fetch !== "function") return null;
+    const res = await fetch(REGISTRY_URL, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!res.ok) return null;
+    const pkg = await res.json();
+    return pkg && pkg.version ? String(pkg.version) : null;
+  } catch (e) {
+    debug(`[fetchLatestVersion] ${e?.message}`);
+    return null;
+  }
+}
+
+export async function resolveLatestVersion() {
+  const cached = readCache();
+  if (cached) return cached.latestVersion;
+
+  const latest = await fetchLatestVersion();
+  if (latest) {
+    try {
+      if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+      fs.writeFileSync(CACHE_FILE, JSON.stringify({ checkedAt: Date.now(), latestVersion: latest }));
+    } catch {}
+  }
+  return latest;
+}
+
+async function checkForUpdate(source) {
+  debug(`[AioxUpdate] check source=${source}`);
+  try {
+    const current = readInstalledVersion();
+    const latest = await resolveLatestVersion();
+    if (!latest) {
+      debug("[AioxUpdate] no latest version");
       return null;
     }
-    const raw = fs.readFileSync(CACHE_FILE, "utf8");
-    const data = JSON.parse(raw);
-    debug(`[readCache] raw=${raw.substring(0,120)}`);
-    if (data.latestVersion) return data;
-    return null;
-  } catch (e) {
-    debug(`[readCache] error ${e?.message}`);
-    return null;
-  }
-}
-
-async function fetchLatest() {
-  const url = "https://registry.npmjs.org/aiox-opencode-adapter/latest";
-  try {
-    if (typeof fetch === "function") {
-      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
-      const j = await res.json();
-      if (j.version) return j.version;
+    if (!isNewer(latest, current)) {
+      debug(`[AioxUpdate] up to date current=${current} latest=${latest}`);
+      return null;
     }
+
+    debug(`[AioxUpdate] update available current=${current} latest=${latest}`);
+    return { current, latest };
   } catch (e) {
-    debug(`[fetchLatest] fetch failed ${e?.message}`);
+    debug(`[AioxUpdate] error ${e?.message} ${e?.stack}`);
+    return null;
   }
-  return null;
 }
 
-export const AioxUpdate = async ({ client }) => {
-  debug(`[AioxUpdate] init current=${getCurrentVersion()}`);
-
+// V1 legacy entrypoint (OpenCode 1.18.29+ still calls `server()`).
+async function v1Server({ client }) {
   const doCheck = async (source) => {
-    debug(`[AioxUpdate] doCheck source=${source}`);
+    const update = await checkForUpdate(source);
+    if (!update) return;
+    const { current, latest } = update;
+
     try {
-      const current = getCurrentVersion();
-      let latest;
-      const cached = readCache();
-      if (cached && cached.latestVersion) {
-        latest = cached.latestVersion;
-        debug(`[AioxUpdate] cached latest=${latest}`);
-      } else {
-        debug(`[AioxUpdate] no cache, fetching`);
-        latest = await fetchLatest();
-        debug(`[AioxUpdate] fetched latest=${latest}`);
-        if (latest) {
-          try { if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR,{recursive:true}); fs.writeFileSync(CACHE_FILE, JSON.stringify({checkedAt: Date.now(), latestVersion: latest})); } catch {}
-        }
-      }
-      if (!latest) { debug("[AioxUpdate] no latest, abort"); return; }
-      if (!isNewer(latest, current)) { debug(`[AioxUpdate] not newer latest=${latest} current=${current}`); return; }
-
-      // Delay para cair apos LSPs are disabled
-      await new Promise(r => setTimeout(r, 1500));
-      debug(`[AioxUpdate] SHOW current=${current} latest=${latest}`);
-
-      // Escreve arquivo de prova visivel via cat
-      try { fs.writeFileSync(NOTICE_FILE, `Nova versao disponivel!! v${current} -> v${latest} [Cancelar] [Atualizar] aiox-global update\n`); } catch {}
-
-      // Log 1 - warn (amarelo) - deve aparecer abaixo de LSPs are disabled no painel de logs
-      try {
-        await client.app.log({ body: { service: "aiox", level: "warn", message: `Nova versao disponivel!! v${current} → v${latest}`, extra: { title: "Nova versao disponivel!!", current, latest, actions: ["Cancelar","Atualizar"], hint: "aiox-global update" } } });
-        debug("[AioxUpdate] log warn OK");
-      } catch (e) { debug(`[AioxUpdate] log warn fail ${e?.message}`); }
-
-      // Log 2 - error (vermelho) - ainda mais visivel, garante que aparece mesmo se warn filtrado
-      try {
-        await client.app.log({ body: { service: "aiox", level: "error", message: `Nova versao disponivel!! v${current} → v${latest} | [Cancelar] [Atualizar] — rode: aiox-global update`, extra: { current, latest } } });
-        debug("[AioxUpdate] log error OK");
-      } catch (e) { debug(`[AioxUpdate] log error fail ${e?.message}`); }
-
-      // Toast 1 - warning
-      try {
-        await client.tui.showToast({ body: { message: `Nova versao disponivel!! v${current} → v${latest} | [Cancelar] [Atualizar]`, variant: "warning" } });
-        debug("[AioxUpdate] toast warning OK");
-      } catch (e) { debug(`[AioxUpdate] toast warning fail ${e?.message}`); }
-
-      // Toast 2 - error fallback
-      try {
-        await client.tui.showToast({ body: { message: `Nova versao disponivel!! v${current} → v${latest}`, variant: "error" } });
-        debug("[AioxUpdate] toast error OK");
-      } catch (e) { debug(`[AioxUpdate] toast error fail ${e?.message}`); }
-
+      await client.app.log({
+        body: {
+          service: "aiox",
+          level: "warn",
+          message: `Nova versao disponivel!! v${current} → v${latest}`,
+          extra: {
+            title: "Nova versao disponivel!!",
+            current,
+            latest,
+            actions: ["Cancelar", "Atualizar"],
+            hint: "aiox-global update",
+          },
+        },
+      });
     } catch (e) {
-      debug(`[AioxUpdate] outer error ${e?.message} ${e?.stack}`);
+      debug(`[AioxUpdate] log fail ${e?.message}`);
+    }
+
+    try {
+      await client.tui.showToast({
+        body: {
+          message: `Nova versao disponivel!! v${current} → v${latest} | [Cancelar] [Atualizar]`,
+          variant: "warning",
+        },
+      });
+    } catch (e) {
+      debug(`[AioxUpdate] toast fail ${e?.message}`);
     }
   };
 
-  doCheck("init");
+  void doCheck("init");
 
   return {
-    "server.connected": async () => { debug("[AioxUpdate] hook server.connected"); await doCheck("server.connected"); },
-    event: async ({event}) => { if (event.type === "server.connected") { debug("[AioxUpdate] event server.connected"); await doCheck("event"); } },
+    "server.connected": async () => {
+      await doCheck("server.connected");
+    },
   };
+}
+
+const AioxUpdatePlugin = {
+  id: "aiox.update",
+  async setup() {
+    debug("[AioxUpdate] setup (v2)");
+    // Nao bloqueia o carregamento do OpenCode com uma chamada de rede.
+    void checkForUpdate("setup");
+  },
+  // V1 compatibility entrypoint.
+  server: v1Server,
 };
 
-export const AioxUpdatePlugin = AioxUpdate;
-export default AioxUpdate;
+export const AioxUpdate = AioxUpdatePlugin;
+export default AioxUpdatePlugin;

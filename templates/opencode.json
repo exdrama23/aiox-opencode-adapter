@@ -3,7 +3,7 @@
   "default_agent": "aiox-master",
   "agent": {
     "aiox-master": {
-      "description": "Orion - AIOX Master Orchestrator. Orchestrates multi-agent workflows. Use @agent-name to invoke specialized agents.",
+      "description": "Orion - AIOX Master Orchestrator. Routes work to specialist agents via the subagent tool.",
       "mode": "primary",
       "color": "#9C27B0",
       "permission": {

@@ -1,24 +1,15 @@
-const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
+const { createSandbox } = require('./helpers/sandbox');
 
-const CLI_PATH = path.join(__dirname, '..', 'bin', 'aiox-global.js');
-const OPENCODE_DIR = path.join(os.homedir(), '.config', 'opencode');
-const OPENCODE_AGENTS_DIR = path.join(OPENCODE_DIR, 'agents');
+// These tests install/uninstall agents and rewrite the config: keep them in a
+// throwaway HOME instead of the developer's real ~/.config/opencode.
+const sandbox = createSandbox('cli');
+const OPENCODE_DIR = sandbox.configDir;
+const OPENCODE_AGENTS_DIR = sandbox.agentsDir;
 
 // Helper to run CLI commands
-function run(command = '') {
-  try {
-    return execSync(`node "${CLI_PATH}" ${command}`, {
-      encoding: 'utf8',
-      stdio: 'pipe',
-      timeout: 10000,
-    });
-  } catch (error) {
-    return error.stdout || error.message;
-  }
-}
+const run = sandbox.run;
 
 describe('AIOX Global CLI', () => {
   describe('help command', () => {

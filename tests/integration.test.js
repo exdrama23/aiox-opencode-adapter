@@ -1,26 +1,17 @@
-const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
+const { createSandbox } = require('./helpers/sandbox');
 
-const CLI_PATH = path.join(__dirname, '..', 'bin', 'aiox-global.js');
-const OPENCODE_DIR = path.join(os.homedir(), '.config', 'opencode');
-const OPENCODE_AGENTS_DIR = path.join(OPENCODE_DIR, 'agents');
-const OPENCODE_CONFIG = path.join(OPENCODE_DIR, 'opencode.json');
-const CUSTOM_DIR = path.join(OPENCODE_DIR, 'custom');
+// Destructive flows (uninstall, preset, config) must not touch the real
+// ~/.config/opencode, especially because `prepublishOnly` runs this suite.
+const sandbox = createSandbox('integration');
+const OPENCODE_DIR = sandbox.configDir;
+const OPENCODE_AGENTS_DIR = sandbox.agentsDir;
+const OPENCODE_CONFIG = sandbox.configPath;
+const CUSTOM_DIR = sandbox.customDir;
 
 // Helper to run CLI commands
-function run(command = '') {
-  try {
-    return execSync(`node "${CLI_PATH}" ${command}`, {
-      encoding: 'utf8',
-      stdio: 'pipe',
-      timeout: 10000,
-    });
-  } catch (error) {
-    return error.stdout || error.message;
-  }
-}
+const run = sandbox.run;
 
 // Helper to clean up all AIOX agents
 function cleanup() {

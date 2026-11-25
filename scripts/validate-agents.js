@@ -71,6 +71,44 @@ function isValidV2Action(action) {
   return false;
 }
 
+/**
+ * Detect duplicate mapping keys in frontmatter (same indent => same map).
+ * YAML parsers reject duplicate keys; OpenCode silently skips such agent files.
+ */
+function findDuplicateFrontmatterKeys(yaml) {
+  const duplicates = [];
+  const stack = [];
+  const lines = yaml.split(/\r?\n/);
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    if (!raw.trim() || raw.trim().startsWith('#')) continue;
+
+    const match = raw.match(/^(\s*)(?:"([^"]+)"|'([^']+)'|([^\s:#][^:]*?))\s*:(?:\s|$)/);
+    if (!match) continue;
+
+    const indent = match[1].length;
+    const key = match[2] ?? match[3] ?? match[4];
+    if (!key) continue;
+
+    while (stack.length && stack[stack.length - 1].indent > indent) stack.pop();
+
+    let level = stack[stack.length - 1];
+    if (!level || level.indent < indent) {
+      level = { indent, keys: new Map() };
+      stack.push(level);
+    }
+
+    if (level.keys.has(key)) {
+      duplicates.push({ key, line: i + 2, firstLine: level.keys.get(key) + 2 });
+    } else {
+      level.keys.set(key, i);
+    }
+  }
+
+  return duplicates;
+}
+
 function parseFrontmatter(content) {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return null;
@@ -205,6 +243,14 @@ function validateAgents() {
       console.error(`  Error: No valid frontmatter found`);
       errors++;
       continue;
+    }
+
+    const rawFrontmatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (rawFrontmatter) {
+      for (const dup of findDuplicateFrontmatterKeys(rawFrontmatter[1])) {
+        console.error(`  Error: Duplicate YAML key "${dup.key}" at line ${dup.line} (first at line ${dup.firstLine})`);
+        errors++;
+      }
     }
 
     for (const field of REQUIRED_FIELDS) {
@@ -363,4 +409,4 @@ if (require.main === module) {
   validateAgents();
 }
 
-module.exports = { validateAgents, parseFrontmatter };
+module.exports = { validateAgents, parseFrontmatter, findDuplicateFrontmatterKeys };
