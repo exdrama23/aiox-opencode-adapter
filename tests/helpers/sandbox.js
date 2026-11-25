@@ -36,13 +36,13 @@ function createSandbox(tag) {
     configPath: path.join(configDir, 'opencode.json'),
     customDir: path.join(configDir, 'custom'),
     env,
-    run(command = '') {
+    run(command = '', extraEnv = {}) {
       try {
         return execSync(`node "${CLI_PATH}" ${command}`, {
           encoding: 'utf8',
           stdio: 'pipe',
           timeout: 30000,
-          env,
+          env: { ...env, ...extraEnv },
         });
       } catch (error) {
         return error.stdout || error.message;

@@ -6,76 +6,115 @@ const https = require('https');
 const CACHE_DIR = path.join(os.homedir(), '.aiox', 'cache');
 const CACHE_FILE = path.join(CACHE_DIR, 'update.json');
 const CACHE_TTL = 24 * 60 * 60 * 1000;
+const DEFAULT_REGISTRY_URL = 'https://registry.npmjs.org/aiox-opencode-adapter/latest';
+const FETCH_TIMEOUT_MS = 3000;
+
+function getRegistryUrl() {
+  // Overridable for mirrors and for tests that must stay offline.
+  return process.env.AIOX_REGISTRY_URL || DEFAULT_REGISTRY_URL;
+}
 
 function getCurrentVersion() {
   const pkg = require('../package.json');
   return pkg.version;
 }
 
-function fetchLatestVersion() {
-  return new Promise((resolve, reject) => {
-    const req = https.get(
-      'https://registry.npmjs.org/aiox-opencode-adapter/latest',
-      { timeout: 2000 },
-      (res) => {
+/**
+ * Fetch the latest published version.
+ * Resolves `null` on any failure (offline, 404, timeout, malformed body) so
+ * callers never have to handle a rejection.
+ */
+function fetchLatestVersion(timeoutMs = FETCH_TIMEOUT_MS) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (value) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    let req;
+    try {
+      req = https.get(getRegistryUrl(), { timeout: timeoutMs }, (res) => {
+        if (res.statusCode !== 200) {
+          res.resume();
+          done(null);
+          return;
+        }
+
         let data = '';
-        res.on('data', chunk => data += chunk);
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => { data += chunk; });
         res.on('end', () => {
           try {
             const pkg = JSON.parse(data);
-            resolve(pkg.version);
-          } catch (e) {
-            reject(e);
+            done(pkg && typeof pkg.version === 'string' ? pkg.version : null);
+          } catch {
+            done(null);
           }
         });
-      }
-    );
-    req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+      });
+    } catch {
+      done(null);
+      return;
+    }
+
+    req.on('error', () => done(null));
+    req.on('timeout', () => {
+      req.destroy();
+      done(null);
+    });
   });
 }
 
 function readCache() {
   try {
-    if (!fs.existsSync(CACHE_DIR)) {
-      fs.mkdirSync(CACHE_DIR, { recursive: true });
-    }
-    if (!fs.existsSync(CACHE_FILE)) {
-      return null;
-    }
+    if (!fs.existsSync(CACHE_FILE)) return null;
     const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
-    if (Date.now() - data.checkedAt < CACHE_TTL) {
-      return data;
-    }
-    return null;
+    if (!data || typeof data.latestVersion !== 'string') return null;
+    if (typeof data.checkedAt !== 'number') return null;
+    if (Date.now() - data.checkedAt >= CACHE_TTL) return null;
+    return data;
   } catch {
     return null;
   }
 }
 
 function writeCache(version) {
+  // Never persist a failed lookup: a null/undefined entry would poison the
+  // cache and suppress the update banner for 24h.
+  if (!version || typeof version !== 'string') return;
   try {
     if (!fs.existsSync(CACHE_DIR)) {
       fs.mkdirSync(CACHE_DIR, { recursive: true });
     }
     fs.writeFileSync(CACHE_FILE, JSON.stringify({
       checkedAt: Date.now(),
-      latestVersion: version
+      latestVersion: version,
     }));
   } catch {
-
+    // Cache is best-effort.
   }
 }
 
+function parseVersion(value) {
+  if (typeof value !== 'string') return null;
+  const match = value.trim().replace(/^v/, '').match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
 function isNewer(latest, current) {
-  const l = latest.split('.').map(Number);
-  const c = current.split('.').map(Number);
+  const l = parseVersion(latest);
+  const c = parseVersion(current);
+  if (!l || !c) return false;
   for (let i = 0; i < 3; i++) {
     if (l[i] > c[i]) return true;
     if (l[i] < c[i]) return false;
   }
   return false;
 }
+
 const c = {
   reset: '\x1b[0m',
   dim: '\x1b[2m',
@@ -87,41 +126,45 @@ const c = {
 
 function showBanner(current, latest) {
   console.log('');
-  console.log(`${c.dim}│${c.reset} ${c.bold}Nova versão disponível${c.reset}`);
-  console.log(`${c.dim}│${c.reset}`);
-  console.log(`${c.dim}│${c.reset} Atual    ${c.gray}v${current}${c.reset}`);
-  console.log(`${c.dim}│${c.reset} Última   ${c.green}v${latest}${c.reset}`);
-  console.log(`${c.dim}│${c.reset}`);
-  console.log(`${c.dim}│${c.reset} Atualize com uma das opções:`);
-  console.log(`${c.dim}│${c.reset}`);
-  console.log(`${c.dim}│${c.reset}   ${c.dim}•${c.reset} ${c.cyan}npm install -g aiox-opencode-adapter@latest${c.reset}`);
-  console.log(`${c.dim}│${c.reset}   ${c.dim}${c.reset} ${c.green}ou${c.reset}`);
-  console.log(`${c.dim}│${c.reset}   ${c.dim}•${c.reset} ${c.cyan}aiox-global update${c.reset}`);
+  console.log(`${c.dim}--${c.reset} ${c.bold}Nova versao disponivel${c.reset}`);
+  console.log(`${c.dim}--${c.reset}`);
+  console.log(`${c.dim}--${c.reset} Atual    ${c.gray}v${current}${c.reset}`);
+  console.log(`${c.dim}--${c.reset} Ultima   ${c.green}v${latest}${c.reset}`);
+  console.log(`${c.dim}--${c.reset}`);
+  console.log(`${c.dim}--${c.reset} Atualize com uma das opcoes:`);
+  console.log(`${c.dim}--${c.reset}`);
+  console.log(`${c.dim}--${c.reset}   ${c.cyan}npm install -g aiox-opencode-adapter@latest${c.reset}`);
+  console.log(`${c.dim}--${c.reset}   ${c.green}ou${c.reset}`);
+  console.log(`${c.dim}--${c.reset}   ${c.cyan}aiox-global update${c.reset}`);
   console.log('');
 }
 
+/**
+ * Show the update banner when a newer version is published.
+ * Never throws and never blocks the process for longer than FETCH_TIMEOUT_MS.
+ */
 async function checkForUpdate() {
   if (process.env.AIOX_DISABLE_UPDATE_CHECK === 'true') return;
 
   try {
     const current = getCurrentVersion();
-
     const cached = readCache();
-    let latest;
+    const latest = cached ? cached.latestVersion : await fetchLatestVersion();
 
-    if (cached) {
-      latest = cached.latestVersion;
-    } else {
-      latest = await fetchLatestVersion();
-      writeCache(latest);
-    }
-
-    if (isNewer(latest, current)) {
-      showBanner(current, latest);
-    }
+    if (!cached) writeCache(latest);
+    if (latest && isNewer(latest, current)) showBanner(current, latest);
   } catch {
-
+    // Update notification must never break the CLI.
   }
 }
 
-module.exports = { checkForUpdate, showBanner };
+module.exports = {
+  checkForUpdate,
+  showBanner,
+  fetchLatestVersion,
+  getCurrentVersion,
+  parseVersion,
+  isNewer,
+  readCache,
+  writeCache,
+};

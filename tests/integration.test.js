@@ -219,6 +219,20 @@ This is a custom test agent.
       // Should either update or say already on latest
       expect(output).toMatch(/Checking for updates|already on the latest/);
     });
+
+    test('fails fast and gracefully when the registry is unreachable', () => {
+      const started = Date.now();
+      const output = run('update', {
+        AIOX_REGISTRY_URL: 'https://127.0.0.1:1/latest',
+        AIOX_DISABLE_UPDATE_CHECK: 'true',
+      });
+      const elapsed = Date.now() - started;
+
+      expect(output).toContain('Current version');
+      expect(output).toContain('Could not check for updates');
+      // No `npm view` subprocess: the failure must come from the 3s HTTP timeout.
+      expect(elapsed).toBeLessThan(15000);
+    });
   });
 
   describe('Uninstall Flow', () => {
