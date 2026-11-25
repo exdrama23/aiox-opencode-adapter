@@ -130,6 +130,29 @@ describe('package identity', () => {
   });
 });
 
+describe('license', () => {
+  const license = fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8').trim();
+
+  test('is plain MIT so GitHub classifies it as MIT and not "Other"', () => {
+    // GitHub's license detector only recognises the standard MIT body. Custom
+    // text appended after the warranty paragraph made it report "Other", so the
+    // repo showed no MIT badge even though package.json said MIT.
+    expect(license.startsWith('MIT License')).toBe(true);
+    expect(license).toContain('Permission is hereby granted, free of charge');
+    expect(license.endsWith('SOFTWARE.')).toBe(true);
+    expect(license).not.toContain('---');
+  });
+
+  test('keeps the upstream attribution required by the AIOX Framework', () => {
+    expect(license).toContain('SynkraAI');
+    expect(license).toContain('AIOX Universal Contributors');
+  });
+
+  test('the license ships in the tarball', () => {
+    expect(pkg.files).toContain('LICENSE');
+  });
+});
+
 describe('npm pack contents', () => {
   let packedFiles;
 
