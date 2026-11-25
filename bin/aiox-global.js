@@ -26,6 +26,7 @@ const OPENCODE_CONFIG = path.join(OPENCODE_DIR, 'opencode.json');
 const OPENCODE_SKILLS_DIR = path.join(OPENCODE_DIR, 'skills');
 const OPENCODE_PLUGINS_DIR = path.join(OPENCODE_DIR, 'plugins');
 const PACKAGE_JSON = path.join(__dirname, '..', 'package.json');
+const pkg = require('../package.json');
 const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
 const PLUGIN_SRC_DIR = path.join(__dirname, '..', 'plugins', 'aiox-update');
 
@@ -1293,9 +1294,9 @@ async function cmdUpdate() {
   }
 
   log('\nUpdating npm package...');
-  const updateResult = exec('npm install -g aiox-opencode-adapter@latest');
+  const updateResult = exec(`npm install -g ${pkg.name}@latest`);
   if (!updateResult) {
-    fail('Failed to update npm package. Try running: npm install -g aiox-opencode-adapter');
+    fail(`Failed to update npm package. Try running: npm install -g ${pkg.name}`);
     return;
   }
   ok('npm package updated');
@@ -1594,9 +1595,8 @@ switch (cmd) {
     break;
   case 'help':
   case undefined:
-    const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
     console.log(`
- ${pkg.name} v${pkg.version}
+ AIOX Universal v${pkg.version}
  ${pkg.description}
 
  Based on AIOX Framework by SynkraAI (MIT License)

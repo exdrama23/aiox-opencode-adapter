@@ -31,7 +31,7 @@ npm ERR! permission denied
 **Solution (Windows):**
 ```bash
 # Run PowerShell as Administrator
-npm install -g aiox-opencode-adapter
+npm install -g aiox-universal
 ```
 
 **Solution (macOS/Linux):**
@@ -39,14 +39,14 @@ npm install -g aiox-opencode-adapter
 # Option 1: Use nvm (recommended)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 nvm install 20
-npm install -g aiox-opencode-adapter
+npm install -g aiox-universal
 
 # Option 2: Change npm permissions
 mkdir ~/.npm-global
 npm config set prefix '~/.npm-global'
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
-npm install -g aiox-opencode-adapter
+npm install -g aiox-universal
 ```
 
 ### Node.js not found

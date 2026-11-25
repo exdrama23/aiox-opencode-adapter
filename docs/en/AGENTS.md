@@ -17,7 +17,7 @@
 
 ## Overview
 
-The AIOX OpenCode Adapter includes 13 specialized AI agents. Each agent has a specific function and works together to complete complex tasks.
+AIOX Universal includes 13 specialized AI agents. Each agent has a specific function and works together to complete complex tasks.
 
 ### Agent Table
 

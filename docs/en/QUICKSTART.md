@@ -6,10 +6,12 @@
 
 ## Quick Installation (2 minutes)
 
+> Previously published as `aiox-opencode-adapter`.
+
 ### 1. Install the Package
 
 ```bash
-npm install -g aiox-opencode-adapter
+npm install -g aiox-universal
 ```
 
 ### 2. Configure Everything Automatically

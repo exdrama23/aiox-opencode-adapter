@@ -17,7 +17,7 @@ const CACHE_DIR = path.join(os.homedir(), ".aiox", "cache");
 const CACHE_FILE = path.join(CACHE_DIR, "update.json");
 const DEBUG_FILE = path.join(CACHE_DIR, "plugin-debug.log");
 const DEBUG_MAX_BYTES = 256 * 1024;
-const REGISTRY_URL = "https://registry.npmjs.org/aiox-opencode-adapter/latest";
+const REGISTRY_URL = "https://registry.npmjs.org/aiox-universal/latest";
 
 function debug(msg) {
   try {

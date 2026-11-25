@@ -1,9 +1,11 @@
-# AIOX OpenCode Adapter
+# AIOX Universal
 
-[![npm version](https://img.shields.io/npm/v/aiox-opencode-adapter.svg)](https://www.npmjs.com/package/aiox-opencode-adapter)
-[![npm downloads](https://img.shields.io/npm/dm/aiox-opencode-adapter.svg)](https://www.npmjs.com/package/aiox-opencode-adapter)
-[![license](https://img.shields.io/npm/l/aiox-opencode-adapter.svg)](LICENSE)
-[![node](https://img.shields.io/node/v/aiox-opencode-adapter.svg)](https://nodejs.org)
+[![npm version](https://img.shields.io/npm/v/aiox-universal.svg)](https://www.npmjs.com/package/aiox-universal)
+[![npm downloads](https://img.shields.io/npm/dm/aiox-universal.svg)](https://www.npmjs.com/package/aiox-universal)
+[![license](https://img.shields.io/npm/l/aiox-universal.svg)](LICENSE)
+[![node](https://img.shields.io/node/v/aiox-universal.svg)](https://nodejs.org)
+
+> Previously published as `aiox-opencode-adapter`.
 
 **English** | [Portugues](README.md)
 
@@ -47,7 +49,7 @@ Use [AIOX](https://github.com/SynkraAI/aiox-core) agents globally in [OpenCode](
 
 ```bash
 # 1. Install the package globally
-npm install -g aiox-opencode-adapter
+npm install -g aiox-universal
 
 # 2. Install agents to OpenCode
 aiox-global init

@@ -377,4 +377,4 @@ Tools: markdown, manual documentation, screenshots
 - **Legal Compliance**: Ensure all activities comply with local laws
 
 ## License
-This agent is part of the AIOX OpenCode Adapter library.
+This agent is part of AIOX Universal library.

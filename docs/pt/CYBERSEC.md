@@ -21,7 +21,7 @@
 
 ## Visao Geral
 
-O **Kira** e o agente de seguranca cibernetica do AIOX OpenCode Adapter. Ele executa pentestings completos, escaneamento de vulnerabilidades, auditoria de seguranca e analise de ameacas seguindo metodologias reconhecidas pela industria.
+O **Kira** e o agente de seguranca cibernetica do AIOX Universal. Ele executa pentestings completos, escaneamento de vulnerabilidades, auditoria de seguranca e analise de ameacas seguindo metodologias reconhecidas pela industria.
 
 ### Capacidades
 

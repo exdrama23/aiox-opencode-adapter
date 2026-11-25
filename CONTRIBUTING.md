@@ -6,11 +6,11 @@ English | [Portugues](docs/pt/CONTRIBUTING.md)
 
 ## How to Contribute
 
-We welcome contributions to the AIOX OpenCode Adapter project.
+We welcome contributions to AIOX Universal project.
 
 ### Reporting Bugs
 
-1. Check if the bug already exists in [Issues](https://github.com/exdrama23/aiox-opencode-adapter/issues)
+1. Check if the bug already exists in [Issues](https://github.com/exdrama23/aiox-universal/issues)
 2. If not, open a new issue with:
    - Clear description of the problem
    - Steps to reproduce
@@ -43,7 +43,7 @@ We welcome contributions to the AIOX OpenCode Adapter project.
 ### Project Structure
 
 ```
-aiox-opencode-adapter/
+aiox-universal/
   agents/           # Agent markdown files
   bin/              # CLI scripts
   docs/             # Documentation

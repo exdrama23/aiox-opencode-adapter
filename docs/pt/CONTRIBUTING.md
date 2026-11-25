@@ -6,11 +6,11 @@
 
 ## Como Contribuir
 
-Recebemos contribuicoes para o projeto AIOX OpenCode Adapter.
+Recebemos contribuicoes para o projeto AIOX Universal.
 
 ### Reportando Bugs
 
-1. Verifique se o bug ja existe nas [Issues](https://github.com/exdrama23/aiox-opencode-adapter/issues)
+1. Verifique se o bug ja existe nas [Issues](https://github.com/exdrama23/aiox-universal/issues)
 2. Se nao existir, abra uma nova issue com:
    - Descricao clara do problema
    - Passos para reproduzir
@@ -43,7 +43,7 @@ Recebemos contribuicoes para o projeto AIOX OpenCode Adapter.
 ### Estrutura do Projeto
 
 ```
-aiox-opencode-adapter/
+aiox-universal/
   agents/           # Arquivos markdown dos agentes
   bin/              # Scripts CLI
   docs/             # Documentacao

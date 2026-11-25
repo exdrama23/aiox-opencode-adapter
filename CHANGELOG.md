@@ -11,9 +11,16 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - `doctor`: `Pentest MCP container found` era falso positivo. `docker ps -a` prova apenas que o container existe; o config usa `docker exec -i pentest-mcp`, que falha com o container parado. Agora o check distingue `running` / `exited` / ausente e, quando parado, mostra o comando para iniciar (`docker start pentest-mcp`)
 - `doctor`: `HexStrike AI installed` era apenas a existencia do arquivo `hexstrike_mcp.py`; agora tambem testa se o servidor responde em `host:porta` extraidos do proprio config (`--server http://localhost:8888`), com TCP probe de 1s e mensagem acionavel quando nao responde
 
+### Alterado
+- Pacote renomeado de `aiox-opencode-adapter` para `aiox-universal` (mesma versao 1.5.1)
+- O binario `aiox-global` continua igual e agora tambem esta disponivel como `aiox-universal`
+- `npm i -g aiox-opencode-adapter` nao recebe mais atualizacoes (o pacote antigo sera deprecated)
+
 ### Adicionado
 - `lib/opencodeRuntime.js`: `dockerContainerState`, `tcpProbe` e `mcpServerTarget`
-- 8 testes novos (`dockerContainerState`, `mcpServerTarget`, `tcpProbe`), 180 no total
+- `AIOX_CACHE_DIR` para redirecionar o cache de atualizacao (testes nao escrevem mais em `~/.aiox/cache` real)
+- Testes de identidade do pacote: nome publicado, os dois bins no mesmo entrypoint, URL do registry derivada do `package.json` e cache invalido apos troca de nome
+- 16 testes novos (`dockerContainerState`, `mcpServerTarget`, `tcpProbe`, identidade do pacote), 188 no total
 
 ## [1.5.0] - 2026-11-25
 

@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 const PLUGIN_DIR = path.dirname(fileURLToPath(import.meta.url));
 const CACHE_DIR = path.join(os.homedir(), ".aiox", "cache");
 const CACHE_FILE = path.join(CACHE_DIR, "update.json");
-const REGISTRY_URL = "https://registry.npmjs.org/aiox-opencode-adapter/latest";
+const REGISTRY_URL = "https://registry.npmjs.org/aiox-universal/latest";
 
 function readInstalledVersion() {
   const candidates = [

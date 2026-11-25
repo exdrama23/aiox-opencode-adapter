@@ -21,7 +21,7 @@
 
 ## Overview
 
-**Kira** is the cybersecurity agent of the AIOX OpenCode Adapter. She performs complete pentests, vulnerability scanning, security auditing, and threat analysis following industry-recognized methodologies.
+**Kira** is the cybersecurity agent of AIOX Universal. She performs complete pentests, vulnerability scanning, security auditing, and threat analysis following industry-recognized methodologies.
 
 ### Capabilities
 

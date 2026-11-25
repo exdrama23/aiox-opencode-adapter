@@ -18,7 +18,7 @@
 
 ## Pre-requisitos
 
-Antes de instalar o AIOX OpenCode Adapter, voce precisa ter os seguintes componentes instalados:
+Antes de instalar o AIOX Universal, voce precisa ter os seguintes componentes instalados:
 
 | Componente | Versao Minima | Obrigatorio | Para que serve |
 |------------|---------------|-------------|----------------|
@@ -195,11 +195,13 @@ git --version
 
 ## Instalacao do Pacote
 
+> Anteriormente publicado como `aiox-opencode-adapter`.
+
 ### Instalacao Global (recomendado)
 
 ```bash
 # Instalar o pacote globalmente
-npm install -g aiox-opencode-adapter
+npm install -g aiox-universal
 
 # Verificar se foi instalado
 aiox-global help
@@ -211,8 +213,8 @@ Se voce quiser modificar o codigo fonte:
 
 ```bash
 # Clonar o repositorio
-git clone https://github.com/exdrama23/aiox-opencode-adapter.git
-cd aiox-opencode-adapter
+git clone https://github.com/exdrama23/aiox-universal.git
+cd aiox-universal
 
 # Instalar dependencias
 npm install

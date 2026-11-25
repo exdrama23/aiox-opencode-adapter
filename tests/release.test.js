@@ -28,6 +28,108 @@ describe('package.json files whitelist', () => {
   });
 });
 
+describe('package identity', () => {
+  const OLD_NAME = 'aiox-opencode' + '-adapter';
+  const NEW_NAME = 'aiox-universal';
+
+  test('package is published as aiox-universal', () => {
+    expect(pkg.name).toBe(NEW_NAME);
+  });
+
+  test('bin exposes aiox-global and aiox-universal on the same entrypoint', () => {
+    expect(pkg.bin['aiox-global']).toBe('bin/aiox-global.js');
+    expect(pkg.bin[NEW_NAME]).toBe('bin/aiox-global.js');
+    expect(pkg.bin['aiox-global']).toBe(pkg.bin[NEW_NAME]);
+  });
+
+  test('update checker registry URL follows the package name', () => {
+    const previous = process.env.AIOX_REGISTRY_URL;
+    delete process.env.AIOX_REGISTRY_URL;
+    try {
+      const url = updateChecker.getRegistryUrl();
+      expect(url).toBe(`https://registry.npmjs.org/${pkg.name}/latest`);
+      expect(url).toContain(pkg.name);
+    } finally {
+      if (previous !== undefined) process.env.AIOX_REGISTRY_URL = previous;
+    }
+  });
+
+  test('update checker has no hardcoded package path', () => {
+    const source = fs.readFileSync(path.join(ROOT, 'bin', 'update-checker.js'), 'utf8');
+    expect(source).not.toMatch(/npmjs\.org\/aiox-/);
+    expect(source).toContain("require('../package.json')");
+    expect(source).toContain('${pkg.name}');
+  });
+
+  test('AIOX_REGISTRY_URL still overrides the registry', () => {
+    const previous = process.env.AIOX_REGISTRY_URL;
+    process.env.AIOX_REGISTRY_URL = 'https://example.test/aiox/latest';
+    try {
+      expect(updateChecker.getRegistryUrl()).toBe('https://example.test/aiox/latest');
+    } finally {
+      if (previous === undefined) delete process.env.AIOX_REGISTRY_URL;
+      else process.env.AIOX_REGISTRY_URL = previous;
+    }
+  });
+
+  test('the cache is not reused across a package rename', () => {
+    // Redirect the cache: the previous version of this test wrote into the
+    // real ~/.aiox/cache, which is exactly the kind of state leakage the
+    // sandbox helper was introduced to stop.
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aiox-cache-'));
+    const cacheFile = path.join(tempDir, 'update.json');
+    const previousDir = process.env.AIOX_CACHE_DIR;
+    process.env.AIOX_CACHE_DIR = tempDir;
+
+    try {
+      fs.writeFileSync(cacheFile, JSON.stringify({
+        name: OLD_NAME,
+        checkedAt: Date.now(),
+        latestVersion: '9.9.9',
+      }));
+      expect(updateChecker.readCache()).toBeNull();
+
+      updateChecker.writeCache('1.5.2');
+      const written = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      expect(written.name).toBe(pkg.name);
+      expect(updateChecker.readCache()).not.toBeNull();
+    } finally {
+      if (previousDir === undefined) delete process.env.AIOX_CACHE_DIR;
+      else process.env.AIOX_CACHE_DIR = previousDir;
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test('the cache path is overridable so it never has to touch the real home', () => {
+    const source = fs.readFileSync(path.join(ROOT, 'bin', 'update-checker.js'), 'utf8');
+    expect(source).toContain('AIOX_CACHE_DIR');
+  });
+
+  test('no source, test or package file still references the old name', () => {
+    const roots = ['bin', 'lib', 'plugins', 'tests'];
+    const files = [];
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (entry.name === 'node_modules' || entry.name === '.git') continue;
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else files.push(full);
+      }
+    };
+    for (const root of roots) {
+      const full = path.join(ROOT, root);
+      if (fs.existsSync(full)) walk(full);
+    }
+    files.push(path.join(ROOT, 'package.json'));
+
+    const offenders = files
+      .filter((file) => fs.readFileSync(file, 'utf8').includes(OLD_NAME))
+      .map((file) => path.relative(ROOT, file).replace(/\\/g, '/'));
+
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe('npm pack contents', () => {
   let packedFiles;
 

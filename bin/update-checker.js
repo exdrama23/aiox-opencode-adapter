@@ -3,10 +3,10 @@ const path = require('path');
 const os = require('os');
 const https = require('https');
 
-const CACHE_DIR = path.join(os.homedir(), '.aiox', 'cache');
-const CACHE_FILE = path.join(CACHE_DIR, 'update.json');
+const pkg = require('../package.json');
+
 const CACHE_TTL = 24 * 60 * 60 * 1000;
-const DEFAULT_REGISTRY_URL = 'https://registry.npmjs.org/aiox-opencode-adapter/latest';
+const DEFAULT_REGISTRY_URL = `https://registry.npmjs.org/${pkg.name}/latest`;
 const FETCH_TIMEOUT_MS = 3000;
 
 function getRegistryUrl() {
@@ -14,8 +14,18 @@ function getRegistryUrl() {
   return process.env.AIOX_REGISTRY_URL || DEFAULT_REGISTRY_URL;
 }
 
+// Resolved lazily so a test can redirect the cache to a temp dir with
+// AIOX_CACHE_DIR instead of writing into the user's real ~/.aiox.
+function cacheDir() {
+  if (process.env.AIOX_CACHE_DIR) return path.resolve(process.env.AIOX_CACHE_DIR);
+  return path.join(os.homedir(), '.aiox', 'cache');
+}
+
+function cacheFile() {
+  return path.join(cacheDir(), 'update.json');
+}
+
 function getCurrentVersion() {
-  const pkg = require('../package.json');
   return pkg.version;
 }
 
@@ -69,10 +79,14 @@ function fetchLatestVersion(timeoutMs = FETCH_TIMEOUT_MS) {
 
 function readCache() {
   try {
-    if (!fs.existsSync(CACHE_FILE)) return null;
-    const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+    const file = cacheFile();
+    if (!fs.existsSync(file)) return null;
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
     if (!data || typeof data.latestVersion !== 'string') return null;
     if (typeof data.checkedAt !== 'number') return null;
+    // A cache written by a previous package name must not be reused after a
+    // rename: the version it holds belongs to a different npm package.
+    if (data.name && data.name !== pkg.name) return null;
     if (Date.now() - data.checkedAt >= CACHE_TTL) return null;
     return data;
   } catch {
@@ -85,10 +99,12 @@ function writeCache(version) {
   // cache and suppress the update banner for 24h.
   if (!version || typeof version !== 'string') return;
   try {
-    if (!fs.existsSync(CACHE_DIR)) {
-      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    const dir = cacheDir();
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(CACHE_FILE, JSON.stringify({
+    fs.writeFileSync(cacheFile(), JSON.stringify({
+      name: pkg.name,
       checkedAt: Date.now(),
       latestVersion: version,
     }));
@@ -133,7 +149,7 @@ function showBanner(current, latest) {
   console.log(`${c.dim}--${c.reset}`);
   console.log(`${c.dim}--${c.reset} Atualize com uma das opcoes:`);
   console.log(`${c.dim}--${c.reset}`);
-  console.log(`${c.dim}--${c.reset}   ${c.cyan}npm install -g aiox-opencode-adapter@latest${c.reset}`);
+  console.log(`${c.dim}--${c.reset}   ${c.cyan}npm install -g ${pkg.name}@latest${c.reset}`);
   console.log(`${c.dim}--${c.reset}   ${c.green}ou${c.reset}`);
   console.log(`${c.dim}--${c.reset}   ${c.cyan}aiox-global update${c.reset}`);
   console.log('');
@@ -163,6 +179,7 @@ module.exports = {
   showBanner,
   fetchLatestVersion,
   getCurrentVersion,
+  getRegistryUrl,
   parseVersion,
   isNewer,
   readCache,

@@ -43,7 +43,7 @@ MCP (Model Context Protocol) is a protocol that allows OpenCode to communicate w
 
 ## Included MCPs
 
-The AIOX OpenCode Adapter includes configuration for two security MCPs:
+AIOX Universal includes configuration for two security MCPs:
 
 ### HexStrike AI
 
