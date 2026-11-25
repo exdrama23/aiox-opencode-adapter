@@ -56,16 +56,25 @@ aiox-global config
 ## Comandos Disponiveis
 
 ```bash
-aiox-global init              # Instala agentes em ~/.config/opencode/agents/
+aiox-global init              # Instala agentes em ~/.config/opencode/agents/ (com backup)
+aiox-global init --dry-run    # Mostra o que mudaria, sem escrever
+aiox-global status            # Compara instalado x pacote (equal/outdated/modified/missing)
+aiox-global doctor            # Verifica saude da instalacao
+aiox-global doctor --deep     # Pergunta ao OpenCode quais agentes ele carregou
+aiox-global logs              # Ultimas linhas do log do OpenCode
+aiox-global logs --errors     # Procura plugin/agente/config quebrados no log
+aiox-global restore --list    # Lista backups criados pelo init
+aiox-global restore           # Restaura o backup mais recente
 aiox-global config            # Gera opencode.json com MCPs auto-detectados
 aiox-global setup-hexstrike   # Instala o servidor MCP do HexStrike AI
 aiox-global setup-pentest     # Instala o servidor MCP do Pentest (Docker)
 aiox-global list              # Lista agentes instalados
-aiox-global doctor            # Verifica saude da instalacao
 aiox-global uninstall         # Remove agentes AIOX
 aiox-global help              # Exibe ajuda
 aiox-global --version         # Exibe a versao instalada
 ```
+
+`status`, `doctor`, `logs` e `restore` aceitam `--json` para uso em CI.
 
 ## Configuracao dos MCPs (Opcional)
 

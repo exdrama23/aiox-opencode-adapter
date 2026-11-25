@@ -5,6 +5,27 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.5.0] - 2026-11-25
+
+### Adicionado
+- `aiox-global status` (alias `diff`): compara cada agente instalado com o do pacote e classifica como `equal`, `outdated`, `modified` (editado localmente), `differs` ou `missing`; mostra o shape da config (V1/V2), `default_agent`, MCPs e plugin. Exit code 1 quando ha agente faltando/desatualizado ou config invalida
+- `aiox-global doctor --deep`: pergunta ao runtime (`opencode debug agents`) quais agentes ele **realmente carregou** e compara com os 13 esperados, alem de varrer o log por `agent file skipped`, `failed to load plugin` e `SchemaError`. Erros anteriores ao ultimo `init` sao ignorados como historico
+- `aiox-global logs [-n N] [--errors]`: tail do log do OpenCode lendo apenas os ultimos 256 KB (o log chega a dezenas de MB); `--errors` filtra falhas de plugin/agente/config
+- `aiox-global init --dry-run`: mostra exatamente quais agentes mudariam, sem escrever nada
+- `aiox-global restore [--list] [--id <id>]`: `init` agora faz backup dos agentes em `~/.aiox/backups/<timestamp>/` antes de sobrescrever, e `restore` volta para o mais recente (ou um id especifico)
+- `--json` em `status`, `doctor`, `logs` e `restore`, com exit codes utilizaveis em CI
+- `~/.aiox/installed-manifest.json`: hashes gravados pelo `init`, o que permite separar "o pacote avancou" de "voce editou o arquivo"
+- `lib/installedState.js` e `lib/opencodeRuntime.js`
+- 19 testes novos (`tests/commands.test.js`) usando um `opencode` falso via `AIOX_OPENCODE_BIN`
+
+### Alterado
+- `init` faz backup automatico antes de sobrescrever agentes; use `--no-backup` para desativar
+- `doctor` agora termina com um veredito (`all checks passed`, `N failure(s)`) e sai com codigo 1 quando ha falha
+
+### Corrigido
+- **Windows**: `resolveOpencodeDir` preferia `%APPDATA%\opencode` e, numa maquina sem config previa, instalava os agentes num diretorio que o OpenCode 2.4.1 nunca le (ele usa `$HOME/.config/opencode`). A ordem agora e `OPENCODE_CONFIG_DIR` -> `XDG_CONFIG_HOME` -> `~/.config/opencode` -> `%APPDATA%` -> `%LOCALAPPDATA%`
+- `resolveOpencodeDir` aceita `{ env, homedir, platform }` para ser testavel (o Jest substitui `os.homedir()` por um valor fixo)
+
 ## [1.4.3] - 2026-11-25
 
 ### Corrigido

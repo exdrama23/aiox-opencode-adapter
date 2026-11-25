@@ -47,6 +47,8 @@ describe('npm pack contents', () => {
     'bin/aiox-global.js',
     'bin/update-checker.js',
     'lib/opencodeCompat.js',
+    'lib/installedState.js',
+    'lib/opencodeRuntime.js',
     'scripts/validate-agents.js',
     'templates/opencode.json',
     'plugins/aiox-update/index.js',

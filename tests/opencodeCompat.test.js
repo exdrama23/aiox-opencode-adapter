@@ -9,6 +9,7 @@ const {
   normalizePlugins,
   normalizeAgentV2,
   normalizeAgentV1,
+  resolveOpencodeDir,
 } = require('../lib/opencodeCompat');
 
 describe('permission conversion', () => {
@@ -211,5 +212,57 @@ describe('redundant agent permissions', () => {
     const config = { agents: { master: { permissions: [] } } };
     expect(dropRedundantAgentPermissions(config, path.join(os.tmpdir(), 'aiox-missing-dir-xyz'))).toBe(0);
     expect(config.agents.master.permissions).toEqual([]);
+  });
+});
+
+describe('resolveOpencodeDir', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+
+  function makeHome() {
+    return fs.mkdtempSync(path.join(os.tmpdir(), 'aiox-home-'));
+  }
+
+  test('falls back to ~/.config/opencode when nothing exists yet', () => {
+    const home = makeHome();
+    const dir = resolveOpencodeDir({
+      env: { APPDATA: path.join(home, 'AppData', 'Roaming') },
+      homedir: home,
+      platform: 'win32',
+    });
+
+    // The bug this covers: %APPDATA%\opencode used to win, but OpenCode 2 reads
+    // $HOME/.config/opencode, so agents were installed where they never load.
+    expect(dir).toBe(path.join(home, '.config', 'opencode'));
+  });
+
+  test('prefers ~/.config/opencode over %APPDATA% when both exist', () => {
+    const home = makeHome();
+    const appData = path.join(home, 'AppData', 'Roaming');
+    fs.mkdirSync(path.join(appData, 'opencode'), { recursive: true });
+    fs.mkdirSync(path.join(home, '.config', 'opencode'), { recursive: true });
+
+    const dir = resolveOpencodeDir({
+      env: { APPDATA: appData },
+      homedir: home,
+      platform: 'win32',
+    });
+
+    expect(dir).toBe(path.join(home, '.config', 'opencode'));
+  });
+
+  test('still honors OPENCODE_CONFIG_DIR and XDG_CONFIG_HOME', () => {
+    const home = makeHome();
+    const xdg = path.join(home, 'xdg');
+    fs.mkdirSync(path.join(xdg, 'opencode'), { recursive: true });
+
+    expect(resolveOpencodeDir({ env: { XDG_CONFIG_HOME: xdg }, homedir: home, platform: 'linux' }))
+      .toBe(path.join(xdg, 'opencode'));
+
+    const explicit = path.join(home, 'explicit');
+    fs.mkdirSync(explicit, { recursive: true });
+    expect(resolveOpencodeDir({ env: { OPENCODE_CONFIG_DIR: explicit }, homedir: home, platform: 'linux' }))
+      .toBe(explicit);
   });
 });

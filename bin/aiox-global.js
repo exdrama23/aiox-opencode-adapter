@@ -29,6 +29,29 @@ const PACKAGE_JSON = path.join(__dirname, '..', 'package.json');
 const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
 const PLUGIN_SRC_DIR = path.join(__dirname, '..', 'plugins', 'aiox-update');
 
+const STATE_DIR = path.join(os.homedir(), '.aiox');
+const BACKUP_ROOT = path.join(STATE_DIR, 'backups');
+const MANIFEST_FILE = path.join(STATE_DIR, 'installed-manifest.json');
+
+const {
+  compareAgents,
+  listExtraAgents,
+  describeConfig,
+  pluginInstalled,
+  createBackup,
+  listBackups,
+  restoreBackup,
+  hashFile,
+} = require('../lib/installedState');
+
+const {
+  loadedAgents,
+  runtimeVersion,
+  scanLog,
+  tailLog,
+  resolveLogDir,
+} = require('../lib/opencodeRuntime');
+
 const {
   checkForUpdate,
   fetchLatestVersion,
@@ -136,12 +159,69 @@ function removeUpdatePlugin() {
   return removed;
 }
 
-function cmdInit() {
+function readManifest() {
+  try {
+    const data = JSON.parse(fs.readFileSync(MANIFEST_FILE, 'utf8'));
+    return data && data.agents && typeof data.agents === 'object' ? data.agents : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Record the hash of what `init` wrote, so `status` can tell "the package
+ * changed" apart from "you edited the file".
+ */
+function writeManifest() {
+  try {
+    const agents = {};
+    AGENTS.forEach((file) => {
+      const hash = hashFile(path.join(OPENCODE_AGENTS_DIR, file));
+      if (hash) agents[file] = hash;
+    });
+    fs.mkdirSync(STATE_DIR, { recursive: true });
+    fs.writeFileSync(
+      MANIFEST_FILE,
+      JSON.stringify({ version: getPackageVersion(), writtenAt: new Date().toISOString(), agents }, null, 2)
+    );
+  } catch {
+    // A missing manifest only downgrades `status` detail; never fatal.
+  }
+}
+
+function cmdInit(options = {}) {
+  const { dryRun = false } = options;
+  const comparison = compareAgents(AGENTS_DIR, OPENCODE_AGENTS_DIR, AGENTS, readManifest());
+  const changes = comparison.filter((agent) => agent.state !== 'equal');
+
+  if (dryRun) {
+    log('Dry run: nothing will be written.\n');
+    log(`Target: ${OPENCODE_AGENTS_DIR}`);
+    log(`Plan: ${changes.length} of ${AGENTS.length} agents would change\n`);
+    if (changes.length === 0) {
+      ok(`All ${AGENTS.length} agents already match the package`);
+    } else {
+      changes.forEach((agent) => console.log(`  ~ ${agent.name.padEnd(20)} ${agent.state}`));
+    }
+    log('\nWould also refresh the aiox-update plugin and the install manifest.');
+    return;
+  }
+
   log('Installing AIOX agents globally for OpenCode...\n');
 
   if (!fs.existsSync(OPENCODE_AGENTS_DIR)) {
     fs.mkdirSync(OPENCODE_AGENTS_DIR, { recursive: true });
     log(`Created: ${OPENCODE_AGENTS_DIR}`);
+  }
+
+  const existing = fs.readdirSync(OPENCODE_AGENTS_DIR).filter((f) => f.endsWith('.md'));
+  if (options.backup !== false && existing.length > 0) {
+    try {
+      const backup = createBackup(OPENCODE_AGENTS_DIR, BACKUP_ROOT);
+      info(`Backup: ${backup.agents} agents -> ${backup.dir}`);
+    } catch (error) {
+      warn(`Could not create backup: ${error.message}`);
+    }
   }
 
   let copied = 0;
@@ -158,6 +238,8 @@ function cmdInit() {
     ok(`${file} -> ${dest}`);
     copied++;
   });
+
+  writeManifest();
 
   log(`\nInstalled ${copied}/${AGENTS.length} agents.`);
 
@@ -736,26 +818,215 @@ function cmdList() {
   console.log(`\nTotal: ${files.length} agents`);
 }
 
-function cmdDoctor() {
-  log('Checking AIOX global installation...\n');
+const STATE_ICON = {
+  equal: '✓',
+  outdated: '↑',
+  modified: '~',
+  differs: '?',
+  missing: '✗',
+  unreadable: '!',
+};
 
-  try {
-    const nodeVer = process.version;
-    ok(`Node.js ${nodeVer}`);
-  } catch { fail('Node.js not found'); }
+const STATE_HINT = {
+  outdated: 'package has a newer version - run "aiox-global init"',
+  modified: 'edited locally - "init" will overwrite it (backup is kept)',
+  differs: 'differs from the package',
+  missing: 'not installed - run "aiox-global init"',
+};
 
-  ok(`Config directory: ${OPENCODE_DIR}`);
-  if (process.env.OPENCODE_CONFIG_DIR) {
-    warn('OPENCODE_CONFIG_DIR is set. OpenCode 2.4.1 ignores it when loading config, so only aiox-global uses this path.');
-  }
+function cmdStatus(options = {}) {
+  const { json = false } = options;
+  const comparison = compareAgents(AGENTS_DIR, OPENCODE_AGENTS_DIR, AGENTS, readManifest());
+  const extras = listExtraAgents(OPENCODE_AGENTS_DIR, AGENTS);
+  const config = describeConfig(OPENCODE_CONFIG);
+  const plugin = pluginInstalled(OPENCODE_DIR);
 
-  if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
-    ok(`Agents directory: ${OPENCODE_AGENTS_DIR}`);
-  } else {
-    fail(`Config directory not found: ${OPENCODE_AGENTS_DIR}`);
-    log('Run "aiox-global init" to install.');
+  const summary = { total: AGENTS.length, equal: 0, outdated: 0, modified: 0, differs: 0, missing: 0, unreadable: 0 };
+  comparison.forEach((agent) => { summary[agent.state] += 1; });
+
+  const needsAttention = summary.missing + summary.outdated + summary.unreadable;
+  const exitCode = needsAttention > 0 || !config.exists || !config.valid ? 1 : 0;
+
+  if (json) {
+    console.log(JSON.stringify({
+      version: getPackageVersion(),
+      agentsDir: OPENCODE_AGENTS_DIR,
+      configPath: OPENCODE_CONFIG,
+      summary,
+      agents: comparison,
+      extraAgents: extras,
+      config,
+      plugin,
+      manifest: Boolean(readManifest()),
+    }, null, 2));
+    process.exitCode = exitCode;
     return;
   }
+
+  log(`AIOX status v${getPackageVersion()}\n`);
+  log(`Agents directory: ${OPENCODE_AGENTS_DIR}`);
+  log(`Package ships:    ${AGENTS.length} agents`);
+  if (!readManifest()) {
+    warn('No install manifest (installed by an older version). Run "aiox-global init" once to enable drift detection.');
+  }
+  console.log('');
+
+  comparison.forEach((agent) => {
+    const icon = STATE_ICON[agent.state] || '?';
+    const hint = STATE_HINT[agent.state] ? `  ${STATE_HINT[agent.state]}` : '';
+    console.log(`  ${icon} ${agent.name.padEnd(18)} ${agent.state}${hint}`);
+  });
+
+  console.log('');
+  const parts = Object.entries(summary)
+    .filter(([key, value]) => key !== 'total' && value > 0)
+    .map(([key, value]) => `${value} ${key}`);
+  log(`${summary.total} agents: ${parts.join(', ')}`);
+
+  log(`Config: ${config.exists ? config.shape.toUpperCase() : 'missing'}` +
+    (config.valid && config.defaultAgent ? ` · default_agent=${config.defaultAgent}` : '') +
+    (config.mcp.length ? ` · MCPs: ${config.mcp.join(', ')}` : ' · no MCPs'));
+  if (!config.exists) warn(`No config at ${OPENCODE_CONFIG}. Run "aiox-global config"`);
+  if (config.exists && !config.valid) fail(`Config is not valid JSON: ${config.error}`);
+
+  log(`Plugin: aiox-update ${plugin.format}${plugin.installed ? '' : ' - run "aiox-global init"'}`);
+  if (extras.length) log(`Other agents: ${extras.join(', ')}`);
+
+  if (summary.modified > 0) {
+    log('\nLocally modified agents are overwritten by "init"; use "aiox-global customize <agent>" to keep changes.');
+  }
+
+  process.exitCode = exitCode;
+}
+
+function cmdRestore(options = {}) {
+  const { json = false, list = false, id = null } = options;
+  const backups = listBackups(BACKUP_ROOT);
+
+  if (list) {
+    if (json) {
+      console.log(JSON.stringify({ backupRoot: BACKUP_ROOT, backups }, null, 2));
+      return;
+    }
+    if (backups.length === 0) {
+      log(`No backups in ${BACKUP_ROOT}`);
+      return;
+    }
+    log(`Backups in ${BACKUP_ROOT}:\n`);
+    backups.forEach((backup) => {
+      const when = backup.createdAt || '(unknown date)';
+      console.log(`  ${backup.id.padEnd(28)} ${String(backup.files).padStart(2)} agents  ${when}`);
+    });
+    log('\nRestore with: aiox-global restore --id <id>');
+    return;
+  }
+
+  let target = null;
+  if (id) {
+    target = backups.find((backup) => backup.id === id || backup.id.startsWith(id));
+    if (!target) {
+      if (json) {
+        console.log(JSON.stringify({ error: `Backup not found: ${id}`, available: backups.map((b) => b.id) }, null, 2));
+      } else {
+        fail(`Backup not found: ${id}`);
+        log(`Available: ${backups.map((b) => b.id).join(', ') || 'none'}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+  } else {
+    target = backups[0] || null;
+    if (!target) {
+      if (json) console.log(JSON.stringify({ error: 'No backups available', backupRoot: BACKUP_ROOT }, null, 2));
+      else warn(`No backups available in ${BACKUP_ROOT}. Backups are created by "aiox-global init".`);
+      process.exitCode = 1;
+      return;
+    }
+  }
+
+  const result = restoreBackup(OPENCODE_AGENTS_DIR, target);
+
+  // Deliberately do not refresh the manifest: it records what the package
+  // wrote, so a restored file stays visible as "modified" instead of
+  // masquerading as "outdated".
+
+  if (json) {
+    console.log(JSON.stringify({ backup: target.id, restored: result.restored, agentsDir: OPENCODE_AGENTS_DIR }, null, 2));
+    return;
+  }
+
+  log(`Restored ${result.restored.length} agents from ${target.id}\n`);
+  result.restored.forEach((name) => console.log(`  ✓ ${name}`));
+}
+
+function cmdLogs(options = {}) {
+  const { json = false, errors = false, lines = 40 } = options;
+  const logDir = resolveLogDir();
+
+  if (errors) {
+    const scan = scanLog({ logDir });
+    if (json) {
+      console.log(JSON.stringify(scan, null, 2));
+      process.exitCode = scan.ok && scan.hits.length > 0 ? 1 : 0;
+      return;
+    }
+    if (!scan.ok) {
+      warn(`No OpenCode log found in ${logDir}`);
+      return;
+    }
+    log(`Scanning ${scan.file}${scan.truncated ? ' (tail only)' : ''}\n`);
+    if (scan.hits.length === 0) {
+      ok('No plugin, agent or config errors found');
+      return;
+    }
+    fail(`${scan.hits.length} error line(s) found:`);
+    scan.hits.slice(-40).forEach((hit) => {
+      console.log(`  [${hit.kind}] ${hit.text}`);
+    });
+    process.exitCode = 1;
+    return;
+  }
+
+  const tail = tailLog({ logDir, lines });
+  if (json) {
+    console.log(JSON.stringify(tail, null, 2));
+    process.exitCode = tail.ok ? 0 : 1;
+    return;
+  }
+  if (!tail.ok) {
+    warn(`No OpenCode log found in ${logDir}`);
+    process.exitCode = 1;
+    return;
+  }
+  log(`Last ${tail.lines.length} line(s) of ${tail.file}\n`);
+  tail.lines.forEach((line) => console.log(line));
+}
+
+function cmdDoctor(options = {}) {
+  const { deep = false, json = false } = options;
+  const checks = [];
+  const record = (status, label) => {
+    checks.push({ status, label });
+    if (json) return;
+    if (status === 'ok') ok(label);
+    else if (status === 'warn') warn(label);
+    else fail(label);
+  };
+
+  if (!json) log('Checking AIOX global installation...\n');
+
+  record('ok', `Node.js ${process.version}`);
+  record('ok', `Config directory: ${OPENCODE_DIR}`);
+  if (process.env.OPENCODE_CONFIG_DIR) {
+    record('warn', 'OPENCODE_CONFIG_DIR is set. OpenCode 2.4.1 ignores it when loading config, so only aiox-global uses this path.');
+  }
+
+  if (!fs.existsSync(OPENCODE_AGENTS_DIR)) {
+    record('fail', `Config directory not found: ${OPENCODE_AGENTS_DIR}`);
+    finishDoctor(checks, json, 'Run "aiox-global init" to install.');
+    return;
+  }
+  record('ok', `Agents directory: ${OPENCODE_AGENTS_DIR}`);
 
   // Windows duplication alert
   if (os.platform() === 'win32') {
@@ -766,11 +1037,10 @@ function cmdDoctor() {
     const existing = candidates.filter(p => {
       try { return fs.existsSync(p); } catch { return false; }
     });
-    // Alert if APPDATA and home config both exist and are different
     if (appDataDir && fs.existsSync(appDataDir) && fs.existsSync(homeConfigDir) && path.resolve(appDataDir) !== path.resolve(homeConfigDir)) {
-      warn(`Duplicate config directories detected: ${appDataDir} and ${homeConfigDir} both exist. This may cause confusion. Consider consolidating.`);
+      record('warn', `Duplicate config directories detected: ${appDataDir} and ${homeConfigDir} both exist. This may cause confusion. Consider consolidating.`);
     }
-    if (existing.length > 1) {
+    if (existing.length > 1 && !json) {
       info(`Config candidates found: ${existing.join(', ')} (using ${OPENCODE_DIR})`);
     }
   }
@@ -780,59 +1050,149 @@ function cmdDoctor() {
   const otherAgents = files.filter(f => !AGENTS.includes(f));
 
   if (aioxAgents.length === AGENTS.length) {
-    ok(`All ${AGENTS.length} AIOX agents installed`);
+    record('ok', `All ${AGENTS.length} AIOX agents installed`);
   } else if (aioxAgents.length > 0) {
-    warn(`${aioxAgents.length}/${AGENTS.length} AIOX agents found (missing: ${AGENTS.filter(a => !aioxAgents.includes(a)).join(', ')})`);
+    record('warn', `${aioxAgents.length}/${AGENTS.length} AIOX agents found (missing: ${AGENTS.filter(a => !aioxAgents.includes(a)).join(', ')})`);
   } else {
-    fail('No AIOX agents found. Run "aiox-global init"');
+    record('fail', 'No AIOX agents found. Run "aiox-global init"');
   }
 
-  if (otherAgents.length > 0) {
+  if (otherAgents.length > 0 && !json) {
     log(`  Other agents: ${otherAgents.map(f => f.replace('.md', '')).join(', ')}`);
   }
 
-  if (fs.existsSync(OPENCODE_CONFIG)) {
-    ok('OpenCode config found');
-    try {
-      const config = JSON.parse(fs.readFileSync(OPENCODE_CONFIG, 'utf8'));
-      if (config.default_agent) ok(`Default agent: ${config.default_agent}`);
-      if (config.mcp) {
-        const mcps = Object.keys(config.mcp.servers || config.mcp)
-          .filter(k => k !== 'timeout' && k !== 'servers');
-        if (mcps.length > 0) ok(`MCPs configured: ${mcps.join(', ')}`);
-        else warn('No MCPs configured. Run "aiox-global config"');
-      }
-    } catch {
-      warn('Could not parse opencode.json');
-    }
+  const config = describeConfig(OPENCODE_CONFIG);
+  if (config.exists && config.valid) {
+    record('ok', 'OpenCode config found');
+    if (config.defaultAgent) record('ok', `Default agent: ${config.defaultAgent}`);
+    if (config.mcp.length > 0) record('ok', `MCPs configured: ${config.mcp.join(', ')}`);
+    else record('warn', 'No MCPs configured. Run "aiox-global config"');
+  } else if (config.exists) {
+    record('fail', `Could not parse opencode.json: ${config.error}`);
   } else {
-    warn('No opencode.json found. Run "aiox-global config"');
+    record('warn', 'No opencode.json found. Run "aiox-global config"');
   }
 
-  const pluginDir = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update');
-  if (fs.existsSync(path.join(pluginDir, 'index.js'))) {
-    ok('aiox-update plugin installed (V1 + V2)');
-  } else if (fs.existsSync(path.join(OPENCODE_PLUGINS_DIR, 'aiox-update.js'))) {
-    warn('Legacy aiox-update.js found. Run "aiox-global init" to migrate it.');
+  const plugin = pluginInstalled(OPENCODE_DIR);
+  if (plugin.installed && plugin.format.startsWith('directory')) {
+    record('ok', 'aiox-update plugin installed (V1 + V2)');
+  } else if (plugin.installed) {
+    record('warn', 'Legacy aiox-update.js found. Run "aiox-global init" to migrate it.');
   } else {
-    warn('aiox-update plugin not installed. Run "aiox-global init"');
+    record('warn', 'aiox-update plugin not installed. Run "aiox-global init"');
   }
 
   const hexstrikeDir = path.join(os.homedir(), 'hexstrike-ai');
   if (fs.existsSync(path.join(hexstrikeDir, 'hexstrike_mcp.py'))) {
-    ok('HexStrike AI installed');
+    record('ok', 'HexStrike AI installed');
   } else {
-    warn('HexStrike AI not installed. Run "aiox-global setup-hexstrike"');
+    record('warn', 'HexStrike AI not installed. Run "aiox-global setup-hexstrike"');
   }
 
   const dockerCheck = exec('docker ps -a --filter name=pentest-mcp --format "{{.Names}}"');
   if (dockerCheck && dockerCheck.includes('pentest-mcp')) {
-    ok('Pentest MCP container found');
+    record('ok', 'Pentest MCP container found');
   } else {
-    warn('Pentest MCP not installed. Run "aiox-global setup-pentest"');
+    record('warn', 'Pentest MCP not installed. Run "aiox-global setup-pentest"');
   }
 
-  console.log(`\nTotal agents in ${OPENCODE_DIR}/agents/: ${files.length}`);
+  if (deep) {
+    const version = runtimeVersion();
+    if (version) record('ok', `OpenCode runtime ${version}`);
+
+    const runtime = loadedAgents();
+    if (runtime.ok) {
+      const loaded = new Set(runtime.agents.map((agent) => agent.name));
+      const missing = AGENTS.map((f) => f.replace(/\.md$/, '')).filter((name) => !loaded.has(name));
+      if (missing.length === 0) {
+        record('ok', `OpenCode loaded all ${AGENTS.length} AIOX agents (${runtime.agents.length} total)`);
+      } else {
+        record('fail', `OpenCode did NOT load: ${missing.join(', ')} (file exists but the runtime rejected it)`);
+      }
+
+      const master = runtime.agents.find((agent) => agent.name === 'aiox-master');
+      if (master && master.permissions !== null) {
+        record('ok', `aiox-master: ${master.permissions} permission rules`);
+      }
+      if (!json) {
+        checks.push({ status: 'info', label: `Runtime invoked as: ${runtime.bin} ${runtime.args.join(' ')}` });
+      }
+    } else {
+      record('warn', `Could not query the OpenCode runtime (${runtime.error || 'unknown error'}). Deep check skipped.`);
+    }
+
+    const scan = scanLog({ since: lastInstallTime() });
+    if (!scan.ok) {
+      record('warn', `No OpenCode log found in ${logDirLabel()} - cannot check plugin/agent errors`);
+    } else if (scan.hits.length > 0) {
+      const kinds = [...new Set(scan.hits.map((hit) => hit.kind))];
+      const newest = scan.hits[scan.hits.length - 1].timestamp;
+      record('fail', `${scan.hits.length} error line(s) in ${path.basename(scan.file)}: ${kinds.join(', ')}` +
+        (newest ? ` (newest at ${newest})` : '') +
+        ' - run "aiox-global logs --errors"');
+    } else if (scan.ignored > 0) {
+      record('ok', `No errors since the last install (${scan.ignored} older line(s) in ${path.basename(scan.file)} ignored)`);
+    } else {
+      record('ok', `No plugin/agent errors in ${path.basename(scan.file)}`);
+    }
+  }
+
+  if (!json) console.log(`\nTotal agents in ${OPENCODE_DIR}/agents/: ${files.length}`);
+  finishDoctor(checks, json);
+}
+
+function logDirLabel() {
+  return resolveLogDir();
+}
+
+/**
+ * Newest mtime among the files `init` writes. Errors older than this belong to
+ * a previous installation and must not fail the current one.
+ */
+function lastInstallTime() {
+  let newest = 0;
+  const consider = (file) => {
+    try {
+      const stat = fs.statSync(file);
+      if (stat.mtimeMs > newest) newest = stat.mtimeMs;
+    } catch {
+      // Missing files simply do not contribute.
+    }
+  };
+
+  consider(OPENCODE_CONFIG);
+  consider(path.join(OPENCODE_PLUGINS_DIR, 'aiox-update', 'index.js'));
+
+  if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
+    fs.readdirSync(OPENCODE_AGENTS_DIR)
+      .filter((file) => file.endsWith('.md'))
+      .forEach((file) => consider(path.join(OPENCODE_AGENTS_DIR, file)));
+  }
+
+  return newest > 0 ? newest : null;
+}
+
+function finishDoctor(checks, json, hint) {
+  const failures = checks.filter((check) => check.status === 'fail');
+  const warnings = checks.filter((check) => check.status === 'warn');
+
+  if (json) {
+    console.log(JSON.stringify({
+      ok: failures.length === 0,
+      failures: failures.length,
+      warnings: warnings.length,
+      checks,
+    }, null, 2));
+  } else if (checks.length > 0) {
+    const verdict = failures.length === 0
+      ? (warnings.length === 0 ? 'all checks passed' : `passed with ${warnings.length} warning(s)`)
+      : `${failures.length} failure(s), ${warnings.length} warning(s)`;
+    console.log('');
+    log(`Doctor: ${verdict}`);
+  }
+
+  if (hint && !json) log(hint);
+  process.exitCode = failures.length > 0 ? 1 : 0;
 }
 
 async function cmdUpdate() {
@@ -1079,12 +1439,57 @@ function cmdUninstall() {
 }
 
 const args = process.argv.slice(2);
-const cmd = args[0];
+
+function parseArgs(argv) {
+  const flags = { lines: 40 };
+  const positional = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    switch (arg) {
+      case '--json': flags.json = true; break;
+      case '--deep': flags.deep = true; break;
+      case '--dry-run':
+      case '--dryrun': flags.dryRun = true; break;
+      case '--no-backup': flags.noBackup = true; break;
+      case '--errors': flags.errors = true; break;
+      case '--list': flags.list = true; break;
+      case '-n':
+      case '--lines': flags.lines = Number(argv[++i]) || flags.lines; break;
+      case '--version':
+      case '-v': positional.push('--version'); break;
+      case '-h':
+      case '--help': positional.push('help'); break;
+      default:
+        if (/^--lines=(\d+)$/.test(arg)) flags.lines = Number(arg.split('=')[1]);
+        else if (/^--id=(.+)$/.test(arg)) flags.id = arg.split('=')[1];
+        else if (/^--lines=/.test(arg)) break;
+        else if (arg.startsWith('-')) flags[arg.replace(/^--?/, '')] = true;
+        else positional.push(arg);
+    }
+  }
+
+  return { flags, positional };
+}
+
+const { flags, positional } = parseArgs(args);
+const cmd = positional[0];
 
 switch (cmd) {
   case 'init':
   case 'install':
-    cmdInit();
+    cmdInit({ dryRun: flags.dryRun, backup: !flags.noBackup });
+    break;
+  case 'status':
+  case 'diff':
+    cmdStatus({ json: flags.json });
+    break;
+  case 'restore':
+    cmdRestore({ json: flags.json, list: flags.list, id: flags.id || positional[1] || null });
+    break;
+  case 'logs':
+  case 'log':
+    cmdLogs({ json: flags.json, errors: flags.errors, lines: flags.lines });
     break;
   case 'config':
   case 'configure':
@@ -1108,15 +1513,15 @@ switch (cmd) {
     break;
   case 'doctor':
   case 'check':
-    cmdDoctor();
+    cmdDoctor({ deep: flags.deep, json: flags.json });
     break;
   case 'customize':
   case 'custom':
-    cmdCustomize(args[1]);
+    cmdCustomize(positional[1]);
     break;
   case 'preset':
   case 'template':
-    cmdPreset(args[1]);
+    cmdPreset(positional[1]);
     break;
   case 'auto-setup':
   case 'setup':
@@ -1145,16 +1550,27 @@ switch (cmd) {
     aiox-global auto-setup      Full automatic setup (recommended)
     aiox-global init            Install agents globally for OpenCode
     aiox-global config          Generate opencode.json with auto-detected MCPs
+    aiox-global status          Compare installed agents with the package (alias: diff)
+    aiox-global doctor          Check installation health
+    aiox-global logs            Tail the OpenCode log (--errors to scan for failures)
+    aiox-global restore         Restore agents from a backup (--list to see them)
     aiox-global setup-hexstrike Install HexStrike AI pentesting MCP
     aiox-global setup-pentest   Install Pentest MCP (Docker)
     aiox-global list            List installed agents
     aiox-global update          Update to latest version
     aiox-global customize       Customize an agent (creates local copy)
     aiox-global preset          Apply a preset (dev, pentest, fullstack, agile, minimal)
-    aiox-global doctor          Check installation health
     aiox-global uninstall       Remove AIOX agents
     aiox-global help            Show this help
     aiox-global --version       Show version
+
+  Flags:
+    --json        Machine-readable output (status, doctor, logs, restore)
+    --deep        doctor: also ask the OpenCode runtime which agents it loaded
+    --dry-run     init: show what would change without writing
+    --no-backup   init: skip the agents backup
+    --errors      logs: scan the log for plugin/agent/config errors
+    -n, --lines   logs: number of lines to show (default 40)
  `);
     break;
   default:
