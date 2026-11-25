@@ -5,6 +5,16 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.5.1] - 2026-11-25
+
+### Corrigido
+- `doctor`: `Pentest MCP container found` era falso positivo. `docker ps -a` prova apenas que o container existe; o config usa `docker exec -i pentest-mcp`, que falha com o container parado. Agora o check distingue `running` / `exited` / ausente e, quando parado, mostra o comando para iniciar (`docker start pentest-mcp`)
+- `doctor`: `HexStrike AI installed` era apenas a existencia do arquivo `hexstrike_mcp.py`; agora tambem testa se o servidor responde em `host:porta` extraidos do proprio config (`--server http://localhost:8888`), com TCP probe de 1s e mensagem acionavel quando nao responde
+
+### Adicionado
+- `lib/opencodeRuntime.js`: `dockerContainerState`, `tcpProbe` e `mcpServerTarget`
+- 8 testes novos (`dockerContainerState`, `mcpServerTarget`, `tcpProbe`), 180 no total
+
 ## [1.5.0] - 2026-11-25
 
 ### Adicionado

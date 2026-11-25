@@ -50,6 +50,9 @@ const {
   scanLog,
   tailLog,
   resolveLogDir,
+  dockerContainerState,
+  tcpProbe,
+  mcpServerTarget,
 } = require('../lib/opencodeRuntime');
 
 const {
@@ -1083,17 +1086,42 @@ function cmdDoctor(options = {}) {
   }
 
   const hexstrikeDir = path.join(os.homedir(), 'hexstrike-ai');
-  if (fs.existsSync(path.join(hexstrikeDir, 'hexstrike_mcp.py'))) {
+  const hexstrikeInstalled = fs.existsSync(path.join(hexstrikeDir, 'hexstrike_mcp.py'));
+  if (hexstrikeInstalled) {
     record('ok', 'HexStrike AI installed');
   } else {
     record('warn', 'HexStrike AI not installed. Run "aiox-global setup-hexstrike"');
   }
 
-  const dockerCheck = exec('docker ps -a --filter name=pentest-mcp --format "{{.Names}}"');
-  if (dockerCheck && dockerCheck.includes('pentest-mcp')) {
-    record('ok', 'Pentest MCP container found');
-  } else {
+  // Installed is not the same as reachable: the MCP config points at a local
+  // server process that has to be started separately.
+  const hexstrikeServer = hexstrikeInstalled ? hexstrikeTarget() : null;
+  if (hexstrikeServer) {
+    const reachable = tcpProbe(hexstrikeServer);
+    if (reachable === true) {
+      record('ok', `HexStrike server reachable on ${hexstrikeServer.host}:${hexstrikeServer.port}`);
+    } else if (reachable === false) {
+      record(
+        'warn',
+        `HexStrike server NOT reachable on ${hexstrikeServer.host}:${hexstrikeServer.port} - the MCP will fail to connect. ` +
+        `Start it from ${hexstrikeDir} (see docs/pt/HEXSTRIKE-SETUP.md)`
+      );
+    }
+  }
+
+  const docker = dockerContainerState();
+  if (!docker.dockerAvailable) {
+    record('warn', 'Docker not available or not responding - Pentest MCP cannot run. Run "aiox-global setup-pentest"');
+  } else if (!docker.found) {
     record('warn', 'Pentest MCP not installed. Run "aiox-global setup-pentest"');
+  } else if (docker.state === 'running') {
+    record('ok', `Pentest MCP container running (${docker.status || 'up'})`);
+  } else {
+    record(
+      'warn',
+      `Pentest MCP container exists but is NOT running (state=${docker.state}${docker.status ? `, ${docker.status}` : ''}). ` +
+      'The MCP config uses "docker exec", so it will fail to connect. Start it with: docker start pentest-mcp'
+    );
   }
 
   if (deep) {
@@ -1143,6 +1171,19 @@ function cmdDoctor(options = {}) {
 
 function logDirLabel() {
   return resolveLogDir();
+}
+
+/** Where the hexstrike MCP expects its server, taken from the config itself. */
+function hexstrikeTarget() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(OPENCODE_CONFIG, 'utf8'));
+    const block = (raw.mcp && (raw.mcp.servers || raw.mcp)) || {};
+    const server = block.hexstrike;
+    if (!server || server.disabled) return null;
+    return mcpServerTarget(server.command || []);
+  } catch {
+    return null;
+  }
 }
 
 /**
