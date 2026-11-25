@@ -1101,10 +1101,11 @@ function cmdDoctor(options = {}) {
     if (reachable === true) {
       record('ok', `HexStrike server reachable on ${hexstrikeServer.host}:${hexstrikeServer.port}`);
     } else if (reachable === false) {
+      const startHint = hexstrikeStartCommand(hexstrikeDir);
       record(
         'warn',
         `HexStrike server NOT reachable on ${hexstrikeServer.host}:${hexstrikeServer.port} - the MCP will fail to connect. ` +
-        `Start it from ${hexstrikeDir} (see docs/pt/HEXSTRIKE-SETUP.md)`
+        (startHint ? `Start it with: ${startHint}` : `Start it from ${hexstrikeDir} (see docs/pt/HEXSTRIKE-SETUP.md)`)
       );
     }
   }
@@ -1171,6 +1172,20 @@ function cmdDoctor(options = {}) {
 
 function logDirLabel() {
   return resolveLogDir();
+}
+
+/** Concrete command to boot the hexstrike server, when the pieces are on disk. */
+function hexstrikeStartCommand(dir) {
+  const names = [
+    path.join(dir, 'hexstrike-env', 'Scripts', 'python.exe'),
+    path.join(dir, 'hexstrike-env', 'bin', 'python'),
+    path.join(dir, 'venv', 'Scripts', 'python.exe'),
+    path.join(dir, 'venv', 'bin', 'python'),
+  ];
+  const python = names.find((candidate) => fs.existsSync(candidate));
+  const server = path.join(dir, 'hexstrike_server.py');
+  if (!python || !fs.existsSync(server)) return null;
+  return `"${python}" "${server}"`;
 }
 
 /** Where the hexstrike MCP expects its server, taken from the config itself. */
