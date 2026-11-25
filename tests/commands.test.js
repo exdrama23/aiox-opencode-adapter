@@ -199,6 +199,52 @@ describe('logs', () => {
   });
 });
 
+describe('docker container state', () => {
+  const { dockerContainerState } = require('../lib/opencodeRuntime');
+
+  test('reports docker as unavailable when the command fails', () => {
+    expect(dockerContainerState({ run: () => null })).toMatchObject({ dockerAvailable: false, found: false });
+  });
+
+  test('reports a missing container', () => {
+    expect(dockerContainerState({ run: () => '' })).toMatchObject({ dockerAvailable: true, found: false, state: 'missing' });
+  });
+
+  test('reports a running container', () => {
+    const result = dockerContainerState({ run: () => 'pentest-mcp|running|Up 2 hours' });
+    expect(result).toMatchObject({ found: true, state: 'running' });
+  });
+
+  test('reports a stopped container instead of calling it healthy', () => {
+    // The whole point: `ps -a` finds it, but `docker exec` will still fail.
+    const result = dockerContainerState({ run: () => 'pentest-mcp|exited|Exited (255) 4 weeks ago' });
+    expect(result).toMatchObject({ found: true, state: 'exited', status: 'Exited (255) 4 weeks ago' });
+  });
+});
+
+describe('mcp server target', () => {
+  const { mcpServerTarget, tcpProbe } = require('../lib/opencodeRuntime');
+
+  test('extracts host and port from an MCP command', () => {
+    const command = ['C:\\py\\python.exe', 'hexstrike_mcp.py', '--server', 'http://localhost:8888'];
+    expect(mcpServerTarget(command)).toEqual({ host: 'localhost', port: 8888 });
+  });
+
+  test('handles a command without a URL', () => {
+    expect(mcpServerTarget(['docker', 'exec', '-i', 'pentest-mcp', 'python3', '/app/server.py'])).toBeNull();
+    expect(mcpServerTarget([])).toBeNull();
+  });
+
+  test('tcpProbe reports false for a closed port', () => {
+    // Port 1 on loopback is never listening.
+    expect(tcpProbe({ host: '127.0.0.1', port: 1, timeout: 500 })).toBe(false);
+  });
+
+  test('tcpProbe returns null when no port is given', () => {
+    expect(tcpProbe({})).toBeNull();
+  });
+});
+
 describe('doctor --deep', () => {
   function writeFakeOpencode(agents) {
     const dir = path.join(sandbox.home, 'fake-bin');
