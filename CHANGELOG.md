@@ -5,6 +5,20 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.4.3] - 2026-11-25
+
+### Corrigido
+- `aiox-global update`: consulta o registry por HTTPS direto em vez de spawnar `npm view`; o comando caiu de ~9 s para ~0,6 s e o `prepublishOnly` deixou de depender de um subprocesso npm
+- `update` comparava versoes por igualdade de string; agora usa comparacao semver numerica (`1.10.0` > `1.9.9`)
+- `bin/update-checker.js`: uma consulta que falhava gravava `latestVersion: undefined` no cache de 24 h e escondia o aviso de atualizacao; agora falhas nao sao cacheadas
+- `bin/update-checker.js`: timeout de 3 s na consulta (antes podia segurar o boot do CLI indefinidamente)
+- `package.json`: `repository.url` normalizado para `git+https://...git` (eliminava o warning `npm auto-corrected some errors` em todo publish)
+
+### Adicionado
+- `tests/release.test.js`: guard do campo `files` e verificacao do conteudo real do tarball (`npm pack --dry-run --json`), garantindo que `plugins/`, `scripts/`, `lib/`, `templates/` e os 13 agentes sempre sejam publicados
+- Teste de `update` offline: registry inalcancavel deve falhar rapido e com mensagem clara
+- `AIOX_REGISTRY_URL` para apontar a consulta de versao a um mirror ou a um registry de teste
+
 ## [1.4.2] - 2026-11-25
 
 ### Adicionado

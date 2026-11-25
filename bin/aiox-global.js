@@ -29,7 +29,12 @@ const PACKAGE_JSON = path.join(__dirname, '..', 'package.json');
 const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
 const PLUGIN_SRC_DIR = path.join(__dirname, '..', 'plugins', 'aiox-update');
 
-const { checkForUpdate } = require('./update-checker');
+const {
+  checkForUpdate,
+  fetchLatestVersion,
+  getCurrentVersion,
+  isNewer,
+} = require('./update-checker');
 checkForUpdate();
 
 const AGENTS = [
@@ -830,22 +835,23 @@ function cmdDoctor() {
   console.log(`\nTotal agents in ${OPENCODE_DIR}/agents/: ${files.length}`);
 }
 
-function cmdUpdate() {
+async function cmdUpdate() {
   log('Checking for updates...\n');
 
-  const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
-  const currentVersion = pkg.version;
+  const currentVersion = getCurrentVersion();
   info(`Current version: ${currentVersion}`);
 
+  // Direct registry request with a short timeout. Spawning `npm view` here made
+  // every `update` (and the test suite) wait on a full npm process.
   log('Checking npm registry...');
-  const latestVersion = exec('npm view aiox-opencode-adapter version');
+  const latestVersion = await fetchLatestVersion();
   if (!latestVersion) {
     fail('Could not check for updates. Check your internet connection.');
     return;
   }
   info(`Latest version: ${latestVersion}`);
 
-  if (currentVersion === latestVersion) {
+  if (!isNewer(latestVersion, currentVersion)) {
     ok('You are already on the latest version!');
     return;
   }
