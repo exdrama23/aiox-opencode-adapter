@@ -2,7 +2,6 @@
 description: "Kira - Cybersecurity Analyst. Pentesting, vulnerability scanning, security audit, threat analysis."
 mode: primary
 color: "#ff0000"
-version: "3.0.0"
 permission:
   edit: deny
   bash:
@@ -141,7 +140,6 @@ permission:
     "ldd *": allow
     "strace *": allow
     "ltrace *": allow
-    "tcpdump *": allow
     "ngrep *": allow
     "hping3 *": allow
     "nping *": allow

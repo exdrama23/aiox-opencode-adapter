@@ -14,6 +14,8 @@ const {
   safeClone,
   stripV2Keys,
   stripV1Keys,
+  normalizeMcp,
+  dropRedundantAgentPermissions,
   detectCompatMode,
 } = require('../lib/opencodeCompat');
 
@@ -60,6 +62,75 @@ function exec(cmd, opts = {}) {
   }
 }
 
+function getPackageVersion() {
+  try {
+    return JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')).version || '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+/**
+ * Set an MCP server regardless of whether the config currently uses the
+ * V1 flat shape or the native V2 `mcp.servers` shape.
+ */
+function setMcpServer(config, name, serverConfig) {
+  if (!config.mcp || typeof config.mcp !== 'object') config.mcp = {};
+  const isV2 = config.mcp.servers && typeof config.mcp.servers === 'object';
+  if (isV2) {
+    config.mcp.servers[name] = serverConfig;
+  } else {
+    config.mcp[name] = serverConfig;
+  }
+}
+
+function installUpdatePlugin() {
+  if (!fs.existsSync(PLUGIN_SRC_DIR)) return;
+
+  if (!fs.existsSync(OPENCODE_PLUGINS_DIR)) {
+    fs.mkdirSync(OPENCODE_PLUGINS_DIR, { recursive: true });
+  }
+
+  const pluginDir = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update');
+  fs.mkdirSync(pluginDir, { recursive: true });
+
+  for (const file of ['index.js', 'tui.js', 'package.json']) {
+    const src = path.join(PLUGIN_SRC_DIR, file);
+    if (!fs.existsSync(src)) continue;
+    fs.copyFileSync(src, path.join(pluginDir, file));
+  }
+
+  // The installed plugin has no sibling package.json, so persist the version.
+  fs.writeFileSync(
+    path.join(pluginDir, 'version.json'),
+    JSON.stringify({ version: getPackageVersion() }, null, 2)
+  );
+
+  // Remove the legacy single-file V1 plugin if it is still around.
+  const legacy = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update.js');
+  if (fs.existsSync(legacy)) fs.unlinkSync(legacy);
+
+  ok(`aiox-update plugin -> ${pluginDir}`);
+}
+
+function removeUpdatePlugin() {
+  const pluginDir = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update');
+  const legacy = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update.js');
+  let removed = false;
+
+  if (fs.existsSync(pluginDir)) {
+    fs.rmSync(pluginDir, { recursive: true, force: true });
+    ok('Removed plugin: aiox-update/');
+    removed = true;
+  }
+  if (fs.existsSync(legacy)) {
+    fs.unlinkSync(legacy);
+    ok('Removed plugin: aiox-update.js');
+    removed = true;
+  }
+  return removed;
+}
+
 function cmdInit() {
   log('Installing AIOX agents globally for OpenCode...\n');
 
@@ -85,19 +156,9 @@ function cmdInit() {
 
   log(`\nInstalled ${copied}/${AGENTS.length} agents.`);
 
-  // Install AIOX update plugin for TUI notification (below LSPs are disabled)
+  // Install AIOX update plugin (V2 server + TUI parts; V1 fallback entrypoint)
   try {
-    if (fs.existsSync(PLUGIN_SRC_DIR)) {
-      if (!fs.existsSync(OPENCODE_PLUGINS_DIR)) {
-        fs.mkdirSync(OPENCODE_PLUGINS_DIR, { recursive: true });
-      }
-      const pluginDest = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update.js');
-      const srcFile = path.join(PLUGIN_SRC_DIR, 'index.js');
-      if (fs.existsSync(srcFile)) {
-        fs.copyFileSync(srcFile, pluginDest);
-        ok(`aiox-update plugin -> ${pluginDest}`);
-      }
-    }
+    installUpdatePlugin();
   } catch (e) {
     warn(`Could not install plugin: ${e.message}`);
   }
@@ -472,6 +533,14 @@ function cmdConfig() {
   if (compatMode === 'v1') stripV2Keys(config);
   else if (compatMode === 'v2') stripV1Keys(config);
 
+  // Agent .md frontmatter is merged by OpenCode at load time; duplicating it
+  // here only inflates the agent's permission list.
+  try {
+    dropRedundantAgentPermissions(config, OPENCODE_AGENTS_DIR);
+  } catch (e) {
+    warn(`Could not dedupe agent permissions: ${e.message}`);
+  }
+
   const hexstrikePaths = [
     path.join(os.homedir(), 'hexstrike-ai', 'hexstrike_mcp.py'),
     'C:\\hexstrike-ai\\hexstrike_mcp.py',
@@ -486,12 +555,12 @@ function cmdConfig() {
       const isWin = os.platform() === 'win32';
       const python = isWin ? hexstrikeEnv : hexstrikeEnvUnix;
       if (fs.existsSync(python)) {
-        config.mcp.hexstrike = {
+        setMcpServer(config, 'hexstrike', {
           type: 'local',
           command: [python, p, '--server', 'http://localhost:8888'],
           enabled: true,
           timeout: 300000
-        };
+        });
         ok(`HexStrike MCP configured (${p})`);
         hexstrikeFound = true;
         break;
@@ -505,12 +574,12 @@ function cmdConfig() {
   try {
     const dockerCheck = exec('docker ps -a --filter name=pentest-mcp --format "{{.Names}}"');
     if (dockerCheck && dockerCheck.includes('pentest-mcp')) {
-      config.mcp['pentest-mcp'] = {
+      setMcpServer(config, 'pentest-mcp', {
         type: 'local',
         command: ['docker', 'exec', '-i', 'pentest-mcp', 'python3', '/app/server.py'],
         enabled: true,
         timeout: 300000
-      };
+      });
       ok('Pentest MCP configured (Docker container found)');
     } else {
       warn('Pentest MCP not found. Run "aiox-global setup-pentest" to install.');
@@ -523,6 +592,9 @@ function cmdConfig() {
     if (!fs.existsSync(OPENCODE_DIR)) {
       fs.mkdirSync(OPENCODE_DIR, { recursive: true });
     }
+
+    // MCP entries are assigned above, after the first normalization pass.
+    normalizeMcp(config, compatMode);
 
     if (fs.existsSync(OPENCODE_CONFIG)) {
       const backup = OPENCODE_CONFIG + '.bak';
@@ -668,6 +740,9 @@ function cmdDoctor() {
   } catch { fail('Node.js not found'); }
 
   ok(`Config directory: ${OPENCODE_DIR}`);
+  if (process.env.OPENCODE_CONFIG_DIR) {
+    warn('OPENCODE_CONFIG_DIR is set. OpenCode 2.4.1 ignores it when loading config, so only aiox-global uses this path.');
+  }
 
   if (fs.existsSync(OPENCODE_AGENTS_DIR)) {
     ok(`Agents directory: ${OPENCODE_AGENTS_DIR}`);
@@ -717,7 +792,8 @@ function cmdDoctor() {
       const config = JSON.parse(fs.readFileSync(OPENCODE_CONFIG, 'utf8'));
       if (config.default_agent) ok(`Default agent: ${config.default_agent}`);
       if (config.mcp) {
-        const mcps = Object.keys(config.mcp);
+        const mcps = Object.keys(config.mcp.servers || config.mcp)
+          .filter(k => k !== 'timeout' && k !== 'servers');
         if (mcps.length > 0) ok(`MCPs configured: ${mcps.join(', ')}`);
         else warn('No MCPs configured. Run "aiox-global config"');
       }
@@ -726,6 +802,15 @@ function cmdDoctor() {
     }
   } else {
     warn('No opencode.json found. Run "aiox-global config"');
+  }
+
+  const pluginDir = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update');
+  if (fs.existsSync(path.join(pluginDir, 'index.js'))) {
+    ok('aiox-update plugin installed (V1 + V2)');
+  } else if (fs.existsSync(path.join(OPENCODE_PLUGINS_DIR, 'aiox-update.js'))) {
+    warn('Legacy aiox-update.js found. Run "aiox-global init" to migrate it.');
+  } else {
+    warn('aiox-update plugin not installed. Run "aiox-global init"');
   }
 
   const hexstrikeDir = path.join(os.homedir(), 'hexstrike-ai');
@@ -979,10 +1064,8 @@ function cmdUninstall() {
 
   // Also remove plugin if installed
   try {
-    const pluginDest = path.join(OPENCODE_PLUGINS_DIR, 'aiox-update.js');
-    if (fs.existsSync(pluginDest)) {
-      fs.unlinkSync(pluginDest);
-      ok(`Removed plugin: aiox-update.js`);
+    if (!removeUpdatePlugin()) {
+      info('No aiox-update plugin found.');
     }
   } catch (e) {
     warn(`Could not remove plugin: ${e.message}`);

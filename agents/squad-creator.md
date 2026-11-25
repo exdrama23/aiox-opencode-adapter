@@ -2,7 +2,6 @@
 description: "Craft - Squad Creator. Create, validate, publish and manage squads of agents for automated workflows."
 mode: subagent
 color: "#009688"
-version: "1.0.0"
 permission:
   edit: allow
   bash: deny
