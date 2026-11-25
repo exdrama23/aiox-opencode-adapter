@@ -48,6 +48,20 @@ function createSandbox(tag) {
         return error.stdout || error.message;
       }
     },
+    /** Like run(), but also reports the exit code (null when it crashed). */
+    runResult(command = '', extraEnv = {}) {
+      try {
+        const stdout = execSync(`node "${CLI_PATH}" ${command}`, {
+          encoding: 'utf8',
+          stdio: 'pipe',
+          timeout: 30000,
+          env: { ...env, ...extraEnv },
+        });
+        return { output: stdout, code: 0 };
+      } catch (error) {
+        return { output: error.stdout || error.message, code: typeof error.status === 'number' ? error.status : null };
+      }
+    },
   };
 }
 
