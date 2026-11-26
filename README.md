@@ -5,11 +5,31 @@
 [![license](https://img.shields.io/npm/l/aiox-universal.svg)](LICENSE)
 [![node](https://img.shields.io/node/v/aiox-universal.svg)](https://nodejs.org)
 
-> Anteriormente publicado como `aiox-opencode-adapter`.
+**13 agentes de IA especializados dentro do [OpenCode](https://opencode.ai).** Orquestrador, dev, arquiteto, QA, pentest, UX, dados — cada um com seu contexto e suas regras. Instalacao global, funciona em qualquer projeto, sem configurar nada por repositorio.
+
+```bash
+npm install -g aiox-universal && aiox-global init
+```
+
+```text
+> opencode
+  Crie uma API REST para gerenciar tarefas
+
+  @aiox-master  orquestra
+    ├─ @analyst    requisitos
+    ├─ @architect  arquitetura
+    ├─ @dev        implementacao
+    ├─ @qa         testes
+    └─ @devops     deploy
+```
+
+**Por que isso existe**
+
+- **Um agente por papel**, nao um prompt gigante que tenta fazer tudo. Cada um tem permissao, escopo e tom proprios.
+- **Orquestracao de verdade**: `@aiox-master` delega entre os especialistas e consolida o resultado — voce conversa com um agente so.
+- **Verificavel**: `aiox-global status` compara o instalado com o pacote e `aiox-global doctor --deep` pergunta ao proprio OpenCode quais agentes ele carregou.
 
 [English](README.en.md) | **Portugues**
-
-Use agentes [AIOX](https://github.com/SynkraAI/aiox-core) globalmente no [OpenCode](https://opencode.ai) em qualquer projeto.
 
 > Baseado no [AIOX Framework](https://github.com/SynkraAI/aiox-core) por [SynkraAI](https://github.com/SynkraAI) (Licenca MIT).
 
@@ -130,6 +150,8 @@ aiox-master (Orion) orquestra:
 ## Atribuicao
 
 Este pacote e baseado no [AIOX Framework](https://github.com/SynkraAI/aiox-core) por [SynkraAI](https://github.com/SynkraAI), licenciado sob a [Licenca MIT](LICENSE).
+
+> Publicado anteriormente como `aiox-opencode-adapter`. Se voce veio de lá: `npm i -g aiox-universal`.
 
 ## Licenca
 

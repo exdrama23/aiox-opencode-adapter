@@ -5,11 +5,31 @@
 [![license](https://img.shields.io/npm/l/aiox-universal.svg)](LICENSE)
 [![node](https://img.shields.io/node/v/aiox-universal.svg)](https://nodejs.org)
 
-> Previously published as `aiox-opencode-adapter`.
+**13 specialized AI agents inside [OpenCode](https://opencode.ai).** Orchestrator, developer, architect, QA, pentest, UX, data — each with its own context and rules. Installed globally, works in any project, no per-repository setup.
+
+```bash
+npm install -g aiox-universal && aiox-global init
+```
+
+```text
+> opencode
+  Build a REST API to manage tasks
+
+  @aiox-master  orchestrates
+    ├─ @analyst    requirements
+    ├─ @architect  architecture
+    ├─ @dev        implementation
+    ├─ @qa         tests
+    └─ @devops     deploy
+```
+
+**Why it exists**
+
+- **One agent per role**, not one giant prompt trying to do everything. Each has its own permissions, scope and tone.
+- **Real orchestration**: `@aiox-master` delegates across specialists and consolidates the result — you talk to a single agent.
+- **Verifiable**: `aiox-global status` compares what is installed with the package, and `aiox-global doctor --deep` asks OpenCode itself which agents it loaded.
 
 **English** | [Portugues](README.md)
-
-Use [AIOX](https://github.com/SynkraAI/aiox-core) agents globally in [OpenCode](https://opencode.ai) across any project.
 
 > Based on the [AIOX Framework](https://github.com/SynkraAI/aiox-core) by [SynkraAI](https://github.com/SynkraAI) (MIT License).
 
@@ -130,6 +150,8 @@ aiox-master (Orion) orchestrates:
 ## Attribution
 
 This package is based on the [AIOX Framework](https://github.com/SynkraAI/aiox-core) by [SynkraAI](https://github.com/SynkraAI), licensed under the [MIT License](LICENSE).
+
+> Previously published as `aiox-opencode-adapter`. Coming from there? `npm i -g aiox-universal`.
 
 ## License
 

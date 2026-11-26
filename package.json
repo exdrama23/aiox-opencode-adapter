@@ -1,7 +1,7 @@
 {
   "name": "aiox-universal",
   "version": "1.5.2",
-  "description": "AIOX Universal - use AIOX agents globally in OpenCode, with the aiox-global CLI. AIOX Framework adapter.",
+  "description": "13 agentes de IA especializados para OpenCode: orquestrador, dev, QA, arquitetura, pentest e mais. Instale global e invoque com @agente em qualquer projeto.",
   "main": "bin/aiox-global.js",
   "bin": {
     "aiox-global": "bin/aiox-global.js",
@@ -17,15 +17,21 @@
   "keywords": [
     "aiox",
     "opencode",
-    "agents",
-    "ai",
-    "framework",
+    "opencode-agents",
+    "opencode-config",
+    "opencode-plugin",
+    "ai-agents",
+    "ai-coding",
+    "agent-orchestration",
     "multi-agent",
-    "orchestration",
-    "cybersecurity",
+    "developer-tools",
+    "cli",
+    "mcp",
     "pentest",
-    "synkra",
-    "universal"
+    "cybersecurity",
+    "claude-code",
+    "cursor",
+    "llm"
   ],
   "author": "AIOX Universal Contributors",
   "license": "MIT",
