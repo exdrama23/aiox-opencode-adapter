@@ -5,6 +5,19 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.5.3] - 2026-11-26
+
+### Alterado
+- `description` do pacote agora fala de beneficio e e bilingue (EN + PT), em vez de repetir o nome do framework. E o texto que aparece na busca do npm
+- `keywords` passaram de 11 para 17 termos, priorizando o que as pessoas realmente buscam (`opencode-agents`, `opencode-config`, `ai-agents`, `ai-coding`, `developer-tools`, `mcp`, `claude-code`, `cursor`, `llm`) no lugar de termos de marca (`synkra`, `universal`, `framework`)
+
+### Documentacao
+- Topo dos READMEs (PT e EN) reescrito: proposta de valor em uma linha, instalacao em um comando, bloco de demo da orquestracao e tres motivos objetivos para usar. O restante do documento nao mudou
+- Nota sobre o rename (`aiox-opencode-adapter`) movida para a secao de atribuicao
+
+### Nota
+- Sem mudanca de comportamento: apenas metadados e documentacao. 195 testes e `validate-agents` seguem verdes
+
 ## [1.5.2] - 2026-11-26
 
 ### Corrigido

@@ -1,7 +1,7 @@
 {
   "name": "aiox-universal",
-  "version": "1.5.2",
-  "description": "13 agentes de IA especializados para OpenCode: orquestrador, dev, QA, arquitetura, pentest e mais. Instale global e invoque com @agente em qualquer projeto.",
+  "version": "1.5.3",
+  "description": "13 specialized AI agents for OpenCode: orchestrator, dev, QA, architecture, pentest and more. 13 agentes de IA especializados para OpenCode: instale global e invoque com @agente.",
   "main": "bin/aiox-global.js",
   "bin": {
     "aiox-global": "bin/aiox-global.js",
