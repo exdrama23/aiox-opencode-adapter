@@ -1,6 +1,6 @@
 {
   "name": "aiox-universal",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "AIOX Universal - use AIOX agents globally in OpenCode, with the aiox-global CLI. AIOX Framework adapter.",
   "main": "bin/aiox-global.js",
   "bin": {
@@ -8,7 +8,6 @@
     "aiox-universal": "bin/aiox-global.js"
   },
   "scripts": {
-    "postinstall": "echo '[AIOX] Run \"aiox-global init\" to install agents'",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",

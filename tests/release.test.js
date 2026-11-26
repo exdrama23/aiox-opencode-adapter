@@ -130,6 +130,23 @@ describe('package identity', () => {
   });
 });
 
+describe('supply chain posture', () => {
+  test('ships no install script (Socket: "Install scripts" alert)', () => {
+    // A postinstall that only echoes a hint still puts the package in the
+    // highest-risk alert category on socket.dev, because that is the hook
+    // malicious packages use to run payloads at install time.
+    expect(pkg.scripts.postinstall).toBeUndefined();
+    expect(pkg.scripts.preinstall).toBeUndefined();
+    expect(pkg.scripts.install).toBeUndefined();
+  });
+
+  test('the TCP probe does not execute source built at runtime', () => {
+    const source = fs.readFileSync(path.join(ROOT, 'lib', 'opencodeRuntime.js'), 'utf8');
+    expect(source).not.toMatch(/'\-e'/);
+    expect(source).toContain('tcp-probe.js');
+  });
+});
+
 describe('license', () => {
   const license = fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8').trim();
 
@@ -175,6 +192,7 @@ describe('npm pack contents', () => {
     'lib/installedState.js',
     'lib/opencodeRuntime.js',
     'scripts/validate-agents.js',
+    'scripts/tcp-probe.js',
     'templates/opencode.json',
     'plugins/aiox-update/index.js',
     'plugins/aiox-update/tui.js',
