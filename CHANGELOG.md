@@ -5,6 +5,20 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.5.2] - 2026-11-26
+
+### Corrigido
+- `doctor --deep` acusava `OpenCode did NOT load: aiox-master, dev, ...` de forma **intermitente**, mesmo com a instalacao saudavel. `opencode debug agents` pode devolver uma lista truncada (sem os agentes embutidos `build`/`plan`) ou apenas os embutidos quando o servidor esta ocupado. Agora, quando a consulta pede os agentes que instalamos, uma resposta que nao contenha **nenhum** deles e tratada como falha de consulta: `loadedAgents` tenta novamente e o doctor avisa "Could not query the OpenCode runtime" em vez de reprovar os 13 agentes. O sintoma era pior que o bug: um pipeline vermelho aleatorio ensina a ignorar o check (medido em ~1 falha a cada 8 execucoes antes, 10/10 verdes depois)
+- **Supply chain score (Socket: 69)**: o pacote registrava duas categorias de alerta que nao tem nada a ver com a funcionalidade e que assustam quem le a pagina antes de instalar
+- removido o `postinstall` (`echo` de uma dica que ja aparece no `--help` e no README). `Install scripts` e a categoria mais vigiada do Socket porque e por ali que pacotes maliciosos executam payloads na instalacao
+- `tcpProbe` deixou de montar JavaScript em string e passar para `node -e`; agora executa `scripts/tcp-probe.js` com argv. Comportamento identico (`true`/`false`/`null`), sem execucao de codigo gerado em runtime
+
+### Adicionado
+- `scripts/tcp-probe.js` (helper standalone, incluido no tarball e no guard de release)
+
+### Nota
+- Os alertas restantes (`Shell access`, `Network access`, `Environment variable access`, `Filesystem access`, `URL strings`) sao o proprio produto de um instalador de CLI e nao podem ser removidos sem descaracterizar a biblioteca. Para comparar: `pm2`, que tambem spawna shell, fica na mesma faixa
+
 ## [1.5.1] - 2026-11-25
 
 ### Corrigido

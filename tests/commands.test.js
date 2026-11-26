@@ -246,15 +246,20 @@ describe('mcp server target', () => {
 });
 
 describe('doctor --deep', () => {
-  function writeFakeOpencode(agents) {
+  function writeFakeOpencode(agents, { withBuiltins = true } = {}) {
     const dir = path.join(sandbox.home, 'fake-bin');
     fs.mkdirSync(dir, { recursive: true });
+
+    // A healthy runtime always reports its built-in agents. Tests that do not
+    // care pass only the AIOX ones and get the built-in `build` for free; the
+    // truncated-output test opts out on purpose.
+    const payload = withBuiltins ? [{ id: 'build', mode: 'primary' }, ...agents] : agents;
 
     const script = path.join(dir, 'fake-opencode.js');
     fs.writeFileSync(script, `
       const args = process.argv.slice(2);
       if (args.includes('--version')) { console.log('9.9.9'); process.exit(0); }
-      console.log(JSON.stringify(${JSON.stringify(agents)}, null, 2));
+      console.log(JSON.stringify(${JSON.stringify(payload)}, null, 2));
     `);
 
     if (process.platform === 'win32') {
@@ -316,5 +321,20 @@ describe('doctor --deep', () => {
 
     expect(data.ok).toBe(true);
     expect(data.checks.some((check) => check.label.includes('older line(s)'))).toBe(true);
+  });
+
+  test('a runtime that answers with only built-in agents is a warning, not "all agents rejected"', () => {
+    // Reproduces the real intermittent false negative: roughly one call in
+    // eight `opencode debug agents` returns just the built-in agents, with no
+    // error. Turning that into "OpenCode did NOT load: <all 13>" made the check
+    // randomly red, which is worse than not having it.
+    const bin = writeFakeOpencode([{ id: 'plan', mode: 'primary' }]);
+
+    const output = sandbox.run('doctor --deep --json', { AIOX_OPENCODE_BIN: bin });
+    const data = readJson(output);
+
+    const labels = data.checks.map((check) => check.label).join('\n');
+    expect(labels).not.toContain('did NOT load');
+    expect(labels).toContain('Could not query the OpenCode runtime');
   });
 });

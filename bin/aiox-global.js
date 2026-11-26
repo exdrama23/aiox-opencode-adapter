@@ -1130,7 +1130,7 @@ function cmdDoctor(options = {}) {
     const version = runtimeVersion();
     if (version) record('ok', `OpenCode runtime ${version}`);
 
-    const runtime = loadedAgents();
+    const runtime = loadedAgents({ expect: AGENTS.map((f) => f.replace(/\.md$/, '')) });
     if (runtime.ok) {
       const loaded = new Set(runtime.agents.map((agent) => agent.name));
       const missing = AGENTS.map((f) => f.replace(/\.md$/, '')).filter((name) => !loaded.has(name));
